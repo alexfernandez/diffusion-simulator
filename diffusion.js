@@ -1,12 +1,9 @@
 'use strict'
 
-let t = 0, speed, erased
+let time = 0, speed, erased
+let width, height
 const dt = 0.1
 const fontSize = 16
-const w = 1024
-const h = 768 - fontSize
-const cx = w / 2
-const cy = h / 2
 let ctx, updater, raw
 let particles = []
 
@@ -40,12 +37,14 @@ function stop() {
 
 function resetSimulation() {
 	console.log('resetting')
-	t = 0
+	time = 0
 	const canvas = document.getElementById('canvas');
+	width = canvas.width
+	height = canvas.height - fontSize
 	ctx = canvas.getContext('2d');
 	ctx.font = '16px sans-serif'
-	ctx.clearRect(0, 0, w, h)
-	raw = ctx.getImageData(0, 0, w, h);
+	ctx.clearRect(0, 0, width, height)
+	raw = ctx.getImageData(0, 0, width, height);
 	const nparticles = getParameter('particles')
 	speed = getParameter('speed')
 	erased = document.getElementById('visited').checked ? 50 : 0
@@ -66,7 +65,7 @@ function getParameter(name) {
 }
 
 function update() {
-	t = t + dt
+	time += dt
 	for (const particle of particles) {
 		particle.erase()
 		particle.diffuse()
@@ -76,11 +75,11 @@ function update() {
 }
 
 function draw() {
-	ctx.clearRect(0, h, w, h + fontSize)
+	ctx.clearRect(0, height, width, height + fontSize)
 	ctx.putImageData(raw, 0, 0);
-	ctx.fillText('t = ' + t.toFixed(1) + ' s', 100, h + fontSize - 1)
-	ctx.fillText('count = ' + count(255).toFixed(0), 300, h + fontSize - 1)
-	ctx.fillText('visited = ' + count(50).toFixed(0), 500, h + fontSize - 1)
+	ctx.fillText('t = ' + time.toFixed(1) + ' s', 100, height + fontSize - 1)
+	ctx.fillText('count = ' + count(255).toFixed(0), 300, height + fontSize - 1)
+	ctx.fillText('visited = ' + count(50).toFixed(0), 500, height + fontSize - 1)
 }
 
 function count(value) {
@@ -95,19 +94,19 @@ function count(value) {
 }
 
 class Particle {
-	x = cx
-	y = cy
+	x = Math.round(width / 2)
+	y = Math.round(height / 2)
 
 	move() {
 		this.launch()
-		if (this.x >= w) {
-			this.x = w - 1
+		if (this.x >= width) {
+			this.x = width - 1
 		}
 		if (this.x < 0) {
 			this.x = 0
 		}
-		if (this.y >= h) {
-			this.y = h - 1
+		if (this.y >= height) {
+			this.y = height - 1
 		}
 		if (this.y < 0) {
 			this.y = 0
@@ -152,7 +151,7 @@ class Particle {
 	}
 
 	getIndex() {
-		return (this.x + this.y * w) * 4
+		return (this.x + this.y * width) * 4
 	}
 
 	find() {
