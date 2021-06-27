@@ -1,2 +1,4 @@
 # diffusion-simulator
-Simulate diffusion using random walks
+
+Simulate diffusion using random walks.
+

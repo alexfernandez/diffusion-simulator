@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <title>Diffusion simulator</title>
+    <script src="diffusion.js"></script>
+    <style type="text/css">
+      <!--
+      #form {
+        display: inline-block;
+        vertical-align: top;
+        margin: 20px;
+      }
+      canvas {
+        border: solid black 1px;
+      }
+      -->
+    </style>
+
+  </head>
+  <body>
+    <h1>Diffusion simulator</h1>
+    <canvas id="canvas" width="1024" height="768"></canvas>
+    <div id="form">
+    <h3>Tunable parameters</h3>
+    <form id="params">
+      <label for="particles">Particles</label>
+      <input type="number" id="particles" value="10000">
+      <br>
+      <label for="speed">Speed</label>
+      <input type="number" id="speed" value="10">
+      <br>
+      <label for="visited">Visited</label>
+      <input type="checkbox" id="visited" value="false">
+      <br>
+      <button id="run" type="button">run</button>
+      <button id="pause" type="button">pause</button>
+      <button id="stop" type="button">stop</button>
+    </form>
+    </div>
+    <p>
+    See
+    <a href="/2021/understanding-entropy">Understanding Entropy</a>.
+    </p>
+  </body>
+</html>
