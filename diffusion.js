@@ -16,7 +16,7 @@ window.onload = () => {
 	}
 	document.getElementById('run').onclick = run
 	document.getElementById('pause').onclick = pause
-	document.getElementById('stop').onclick = stop
+	document.getElementById('reset').onclick = reset
 }
 
 function run() {
@@ -33,7 +33,7 @@ function pause() {
 	updater = null
 }
 
-function stop() {
+function reset() {
 	pause()
 	resetSimulation()
 	draw()
