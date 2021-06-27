@@ -9,7 +9,11 @@ let particles = []
 
 window.onload = () => {
 	resetSimulation()
-	run()
+	draw()
+	if (getCheckbox('autorun')) {
+		console.log('running')
+		run()
+	}
 	document.getElementById('run').onclick = run
 	document.getElementById('pause').onclick = pause
 	document.getElementById('stop').onclick = stop
@@ -47,7 +51,7 @@ function resetSimulation() {
 	raw = ctx.getImageData(0, 0, width, height);
 	const nparticles = getParameter('particles')
 	speed = getParameter('speed')
-	erased = document.getElementById('visited').checked ? 50 : 0
+	erased = getCheckbox('visited') ? 50 : 0
 	particles = []
 	for (let i = 0; i < nparticles; i++) {
 		const particle = new Particle()
@@ -62,6 +66,10 @@ function resetSimulation() {
 
 function getParameter(name) {
 	return parseFloat(document.getElementById(name).value)
+}
+
+function getCheckbox(name) {
+	return document.getElementById(name).checked
 }
 
 function update() {
