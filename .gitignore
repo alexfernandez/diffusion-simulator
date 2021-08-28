@@ -105,4 +105,5 @@ dist
 
 # custom
 package-lock.json
+*.swp
 
