@@ -1,7 +1,7 @@
 'use strict'
 
 let time = 0, speedms = 0, damping = 0, sizem = 100
-let width, height, cx, cy
+let width, height, cx, cy, factor
 const period = 10
 const dt = 0.1
 const fontSize = 16
@@ -56,12 +56,19 @@ function resetSimulation() {
 	raw = ctx.getImageData(0, 0, width, height);
 	speedms = getParameter('speed')
 	damping = getParameter('damping')
+	factor = computeFactor()
 	grid0 = createGrid()
-	grid0[cx][cy] = 0.001
+	initGrid(grid0)
 	grid1 = createGrid()
-	grid1[cx][cy] = 0.001
+	initGrid(grid1)
 	grid2 = createGrid()
 	console.log('reset')
+}
+
+function computeFactor() {
+	const dx = sizem / width
+	const interval = dt * speedms / dx
+	return interval * interval
 }
 
 function createGrid() {
@@ -73,6 +80,10 @@ function createGrid() {
 		}
 	}
 	return grid
+}
+
+function initGrid(grid) {
+	grid[cx][cy] = 1
 }
 
 function getParameter(name) {
@@ -96,32 +107,19 @@ function advance() {
 			grid2[i][j] = computeNext(i, j)
 		}
 	}
-	grid2[cx][cy] = 0 //Math.sin(2 * Math.PI * time / period)
+	grid2[cx][cy] = Math.cos(2 * Math.PI * time / period)
 }
 
 function computeNext(i, j) {
-	const dx = sizem / width
-	const c = speedms * dt / dx
-	const d1 = 2
-	const d2 = 1
-	const uij = read(i, j, grid1)
-	const uxx = read(i - 1, j, grid1) - 2 * uij + read(i + 1, j, grid1)
-	const uyy = read(i, j - 1, grid1) - 2 * uij + read(i, j + 1, grid1)
-	return d1 * uij - d2 * read(i, j, grid2) + c * uxx + c * uyy
-}
-
-function computeNext2(i, j) {
-	const previous = read(i, j, grid1)
-	const damped = (1 - damping * dt) * (read(i, j, grid1) - read(i, j, grid0))
-	const neighbors = read(i + 1, j, grid1) + read(i - 1, j, grid1) + read(i, j + 1, grid1) + read(i, j - 1, grid1)
-	const corners = read(i + 1, j + 1, grid1) + read(i + 1, j - 1, grid1) + read(i - 1, j + 1, grid1) + read(i - 1, j - 1, grid1)
-	const diagonal = 2 * previous - corners / 2
-	const dx = sizem / width
-	const influence = dt * dt * speedms * speedms * (4 * previous - neighbors + diagonal) / (dx * dx)
+	const previous = read(grid1, i, j)
+	const damped = (1 - damping * dt) * (previous - read(grid0, i, j))
+	const neighbors = read(grid1, i + 1, j) + read(grid1, i - 1, j) + read(grid1, i, j + 1) + read(grid1, i, j - 1)
+	const influence = factor * (neighbors - 4 * previous)
 	return previous + damped + influence
 }
 
-function read(i, j, grid) {
+function read(grid, i, j) {
+	/*
 	if (i < 0) i = -i
 	if (j < 0) j = -j
 	if (i >= width) {
@@ -129,6 +127,10 @@ function read(i, j, grid) {
 	}
 	if (j >= height) {
 		j = 2 * height - j - 1
+	}
+	*/
+	if (i < 0 || j < 0 || i >= width || j >= height) {
+		return 0
 	}
 	return grid[i][j]
 }
@@ -142,7 +144,7 @@ function draw() {
 	}
 	ctx.putImageData(raw, 0, 0);
 	ctx.fillText('t = ' + time.toFixed(1) + ' s', 100, height + fontSize - 1)
-	console.log(grid2[cx + 1][cy])
+	//console.log(grid2[cx + 1][cy])
 }
 
 function replace() {
@@ -158,20 +160,20 @@ function getIndex(x, y) {
 
 function setPixel(x, y, value) {
 	const index = getIndex(x, y)
-	raw.data[index] = 255
-	raw.data[index + 1] = 255
-	raw.data[index + 2] = 255
-	raw.data[index + 3] = 255
 	if (value > 1 || value < -1) {
-		//console.log(`overflow at ${x} ${y}: ${value}`)
 		raw.data[index] = 0
 		raw.data[index + 1] = 0
 		raw.data[index + 2] = 0
 	}
 	else if (value >= 0) {
+		raw.data[index] = 255
+		raw.data[index + 1] = (1 - value) * 255
 		raw.data[index + 2] = (1 - value) * 255
 	} else {
 		raw.data[index] = (1 + value) * 255
+		raw.data[index + 1] = 255
+		raw.data[index + 2] = (1 + value) * 255
 	}
+	raw.data[index + 3] = 255
 }
 
