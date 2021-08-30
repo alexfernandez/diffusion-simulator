@@ -1,6 +1,6 @@
 'use strict'
 
-let time = 0, speedms = 0, damping = 0, sizem = 100
+let time = 0, speedms = 0, damping = 0, sizem = 50
 let width, height, cx, cy, factor
 const period = 10
 const dt = 0.1
@@ -23,6 +23,10 @@ window.onload = () => {
 }
 
 function run() {
+	if (factor > 0.5) {
+		alert(`Factor ${factor} too big > 0.5, aborting`)
+		return
+	}
 	if (updater) return
 	updater = window.setInterval(() => {
 		update()
@@ -62,6 +66,7 @@ function resetSimulation() {
 	grid1 = createGrid()
 	initGrid(grid1)
 	grid2 = createGrid()
+	console.log('factor ', factor)
 	console.log('reset')
 }
 
