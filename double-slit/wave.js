@@ -73,9 +73,9 @@ function computeFactor() {
 
 function createGrid() {
 	const grid = []
-	for (let i = 0; i < width; i++) {
+	for (let i = -1; i <= width; i++) {
 		grid[i] = []
-		for (let j = 0; j < height; j++) {
+		for (let j = -1; j <= height; j++) {
 			grid[i][j] = 0
 		}
 	}
@@ -83,7 +83,7 @@ function createGrid() {
 }
 
 function initGrid(grid) {
-	grid[cx][cy] = 1
+	grid[cx][cy] = 0
 }
 
 function getParameter(name) {
@@ -107,32 +107,43 @@ function advance() {
 			grid2[i][j] = computeNext(i, j)
 		}
 	}
-	grid2[cx][cy] = Math.cos(2 * Math.PI * time / period)
+	//wrapup()
+	grid2[cx][cy] = Math.sin(2 * Math.PI * time / period)
 }
 
 function computeNext(i, j) {
-	const previous = read(grid1, i, j)
-	const damped = (1 - damping * dt) * (previous - read(grid0, i, j))
-	const neighbors = read(grid1, i + 1, j) + read(grid1, i - 1, j) + read(grid1, i, j + 1) + read(grid1, i, j - 1)
+	const lowratio = 0.25
+	const highratio = 0.30
+	let localDamping = damping
+	const limitx = (Math.abs(cx - i) - lowratio * width) / highratio
+	const limity = (Math.abs(cy - j) - lowratio * height) / highratio
+	const dampingx = limitx / width
+	const dampingy = limity / height
+	if (dampingx > 1 || dampingy > 1) {
+		localDamping = 1
+	} else if (dampingx > 0 && dampingy > 0) {
+		localDamping = Math.max(dampingx, dampingy)
+	}
+	const previous = grid1[i][j]
+	const damped = (1 - localDamping * dt) * (previous - grid0[i][j])
+	const neighbors = grid1[i + 1][j] + grid1[i - 1][j] + grid1[i][j + 1] + grid1[i][j - 1]
 	const influence = factor * (neighbors - 4 * previous)
 	return previous + damped + influence
 }
 
-function read(grid, i, j) {
-	/*
-	if (i < 0) i = -i
-	if (j < 0) j = -j
-	if (i >= width) {
-		i = 2 * width - i - 1
+function wrapup() {
+	for (let i = 0; i <= width - 1; i++) {
+		grid2[i][-1] = grid2[i][0]
+		grid2[i][height] = grid2[i][height - 1]
 	}
-	if (j >= height) {
-		j = 2 * height - j - 1
+	for (let j = 0; j <= height - 1; j++) {
+		grid2[-1][j] = grid2[0][j]
+		grid2[width][j] = grid2[width - 1][j]
 	}
-	*/
-	if (i < 0 || j < 0 || i >= width || j >= height) {
-		return 0
-	}
-	return grid[i][j]
+	grid2[-1][-1] = grid2[0][0]
+	grid2[-1][height] = grid2[0][height - 1]
+	grid2[width][-1] = grid2[width - 1][0]
+	grid2[width][height] = grid2[width - 1][height - 1]
 }
 
 function draw() {
@@ -154,12 +165,8 @@ function replace() {
 	grid2 = recycled
 }
 
-function getIndex(x, y) {
-	return (x + y * width) * 4
-}
-
 function setPixel(x, y, value) {
-	const index = getIndex(x, y)
+	const index = (x + y * width) * 4
 	if (value > 1 || value < -1) {
 		raw.data[index] = 0
 		raw.data[index + 1] = 0
