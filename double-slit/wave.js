@@ -28,10 +28,20 @@ function run() {
 		return
 	}
 	if (updater) return
+	let total = 0
+	let rounds = 0
 	updater = window.setInterval(() => {
-		update()
+		const start = Date.now()
+		advance()
 		draw()
+		replace()
+		const elapsed = Date.now() - start
+		total += elapsed
+		rounds += 1
 	}, dt * 1000)
+	window.setInterval(() => {
+		console.log(`Average ms per round: ${Math.round(total / rounds)}`)
+	}, 1000)
 }
 
 function pause() {
@@ -99,14 +109,8 @@ function getCheckbox(name) {
 	return document.getElementById(name).checked
 }
 
-function update() {
-	time += dt
-	advance()
-	draw()
-	replace()
-}
-
 function advance() {
+	time += dt
 	for (let i = 0; i < width; i++) {
 		for (let j = 0; j < height; j++) {
 			grid2[i][j] = computeNext(i, j)
