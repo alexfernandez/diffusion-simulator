@@ -112,31 +112,53 @@ function advance() {
 			grid2[i][j] = computeNext(i, j)
 		}
 	}
-	//wrapup()
-	grid2[cx][cy] = Math.sin(2 * Math.PI * time / period)
+	wrapup()
+	if (time < period) {
+		grid2[cx][cy] = Math.sin(2 * Math.PI * time / period)
+	}
 }
 
 function computeNext(i, j) {
-	const lowratio = 0.25
-	const highratio = 0.30
-	let localDamping = damping
-	const limitx = (Math.abs(cx - i) - lowratio * width) / highratio
-	const limity = (Math.abs(cy - j) - lowratio * height) / highratio
-	const dampingx = limitx / width
-	const dampingy = limity / height
-	if (dampingx > 1 || dampingy > 1) {
-		localDamping = 1
-	} else if (dampingx > 0 && dampingy > 0) {
-		localDamping = Math.max(dampingx, dampingy)
-	}
+	const localDamping = damping //computeDamping(i, j)
 	const previous = grid1[i][j]
 	const damped = (1 - localDamping * dt) * (previous - grid0[i][j])
 	const neighbors = grid1[i + 1][j] + grid1[i - 1][j] + grid1[i][j + 1] + grid1[i][j - 1]
-	const influence = factor * (neighbors - 4 * previous)
+	const influence = propagation * (neighbors - 4 * previous)
 	return previous + damped + influence
 }
 
+function computeDamping(i, j) {
+	const lowratio = 0.25
+	const highratio = 0.30
+	const distancex = Math.abs(cx - i) / width
+	const distancey = Math.abs(cy - j) / height
+	if (distancex > highratio || distancey > highratio) {
+		return 1
+	}
+	if (distancex < lowratio && distancey < lowratio) {
+		return damping
+	}
+	const distance = Math.max(distancex, distancey)
+	return (distance - lowratio) / (highratio - lowratio)
+}
+
 function wrapup() {
+	wrapupZero()
+}
+
+function wrapupZero() {
+	for (let i = -1; i <= width; i++) {
+		grid2[i][-1] = 0
+		grid2[i][height] = 0
+	}
+	for (let j = -1; j <= height; j++) {
+		grid2[-1][j] = 0
+		grid2[width][j] = 0
+		grid2[width - 1][j]
+	}
+}
+
+function wrapupEqual() {
 	for (let i = 0; i <= width - 1; i++) {
 		grid2[i][-1] = grid2[i][0]
 		grid2[i][height] = grid2[i][height - 1]
@@ -149,6 +171,17 @@ function wrapup() {
 	grid2[-1][height] = grid2[0][height - 1]
 	grid2[width][-1] = grid2[width - 1][0]
 	grid2[width][height] = grid2[width - 1][height - 1]
+}
+
+function wrapupSecond() {
+	for (let i = 0; i <= width - 1; i++) {
+		grid2[i][-1] = 2 * grid2[i][0] - grid2[i][1]
+		grid2[i][height] = 2 * grid2[i][height - 1] - grid2[i][height - 2]
+	}
+	for (let j = 0; j <= height - 1; j++) {
+		grid2[-1][j] = 2 * grid2[0][j] - grid2[1][j]
+		grid2[width][j] = 2 * grid2[width - 1][j] - grid2[width - 2][j]
+	}
 }
 
 function draw() {
