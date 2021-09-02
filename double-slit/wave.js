@@ -1,9 +1,9 @@
 'use strict'
 
 let time = 0, speedms = 0, damping = 0, sizem = 50
-let width, height, cx, cy, factor
+let width, height, cx, cy, propagation
 const period = 10
-const dt = 0.1
+const dt = 0.05
 const fontSize = 16
 let ctx, updater, raw
 let grid0 = []
@@ -23,8 +23,8 @@ window.onload = () => {
 }
 
 function run() {
-	if (factor > 0.5) {
-		alert(`Factor ${factor} too big > 0.5, aborting`)
+	if (propagation > 0.5) {
+		alert(`Propagation ${propagation} too big > 0.5, aborting`)
 		return
 	}
 	if (updater) return
@@ -60,17 +60,17 @@ function resetSimulation() {
 	raw = ctx.getImageData(0, 0, width, height);
 	speedms = getParameter('speed')
 	damping = getParameter('damping')
-	factor = computeFactor()
+	propagation = computePropagation()
 	grid0 = createGrid()
 	initGrid(grid0)
 	grid1 = createGrid()
 	initGrid(grid1)
 	grid2 = createGrid()
-	console.log('factor ', factor)
+	console.log('propagation ', propagation)
 	console.log('reset')
 }
 
-function computeFactor() {
+function computePropagation() {
 	const dx = sizem / width
 	const interval = dt * speedms / dx
 	return interval * interval
