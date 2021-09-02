@@ -72,9 +72,7 @@ function resetSimulation() {
 	damping = getParameter('damping')
 	propagation = computePropagation()
 	grid0 = createGrid()
-	initGrid(grid0)
 	grid1 = createGrid()
-	initGrid(grid1)
 	grid2 = createGrid()
 	console.log('propagation ', propagation)
 	console.log('reset')
@@ -95,10 +93,6 @@ function createGrid() {
 		}
 	}
 	return grid
-}
-
-function initGrid(grid) {
-	grid[cx][cy] = 0
 }
 
 function getParameter(name) {
