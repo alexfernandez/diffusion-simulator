@@ -1,6 +1,6 @@
 'use strict'
 
-let time = 0, speedms = 0, damping = 0, sizem = 50
+const sizem = 50
 const period = 10
 const dt = 0.05
 const fontSize = 16
@@ -47,6 +47,9 @@ class Simulator {
 		this.logger = null
 		this.ctx = ctx
 		this.raw = ctx.getImageData(0, 0, this.width, this.height);
+		this.time = 0
+		this.speedms = 0
+		this.damping = 0
 	}
 
 	run() {
@@ -82,9 +85,9 @@ class Simulator {
 	reset() {
 		this.pause()
 		console.log('resetting')
-		time = 0
-		speedms = getParameter('speed')
-		damping = getParameter('damping')
+		this.time = 0
+		this.speedms = getParameter('speed')
+		this.damping = getParameter('damping')
 		this.propagation = this.computePropagation()
 		console.log('propagation ', this.propagation)
 		console.log('reset')
@@ -93,7 +96,7 @@ class Simulator {
 
 	computePropagation() {
 		const dx = sizem / this.width
-		const interval = dt * speedms / dx
+		const interval = dt * this.speedms / dx
 		return interval * interval
 	}
 
@@ -109,22 +112,21 @@ class Simulator {
 	}
 
 	advance() {
-		time += dt
+		this.time += dt
 		for (let i = 0; i < this.width; i++) {
 			for (let j = 0; j < this.height; j++) {
 				this.grid2[i][j] = this.computeNext(i, j)
 			}
 		}
 		this.wrapup()
-		if (time < period) {
-			this.grid2[this.cx][this.cy] = Math.sin(2 * Math.PI * time / period)
+		if (this.time < period) {
+			this.grid2[this.cx][this.cy] = Math.sin(2 * Math.PI * this.time / period)
 		}
 	}
 
 	computeNext(i, j) {
-		const localDamping = damping //computeDamping(i, j)
 		const previous = this.grid1[i][j]
-		const damped = (1 - localDamping * dt) * (previous - this.grid0[i][j])
+		const damped = (1 - this.damping * dt) * (previous - this.grid0[i][j])
 		const neighbors = this.grid1[i + 1][j] + this.grid1[i - 1][j] + this.grid1[i][j + 1] + this.grid1[i][j - 1]
 		const influence = this.propagation * (neighbors - 4 * previous)
 		return previous + damped + influence
@@ -139,7 +141,7 @@ class Simulator {
 			return 1
 		}
 		if (distancex < lowratio && distancey < lowratio) {
-			return damping
+			return this.damping
 		}
 		const distance = Math.max(distancex, distancey)
 		return (distance - lowratio) / (highratio - lowratio)
@@ -195,7 +197,7 @@ class Simulator {
 			}
 		}
 		this.ctx.putImageData(this.raw, 0, 0);
-		this.ctx.fillText('t = ' + time.toFixed(1) + ' s', 100, this.height + fontSize - 1)
+		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', 100, this.height + fontSize - 1)
 		//console.log(this.grid2[this.cx + 1][this.cy])
 	}
 
