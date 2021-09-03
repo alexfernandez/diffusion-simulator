@@ -102,9 +102,9 @@ class Simulator {
 
 	createGrid() {
 		const grid = []
-		for (let i = -1; i <= this.width; i++) {
+		for (let i = 0; i < this.width; i++) {
 			grid[i] = []
-			for (let j = -1; j <= this.height; j++) {
+			for (let j = 0; j < this.height; j++) {
 				grid[i][j] = 0
 			}
 		}
@@ -113,8 +113,8 @@ class Simulator {
 
 	advance() {
 		this.time += dt
-		for (let i = 0; i < this.width; i++) {
-			for (let j = 0; j < this.height; j++) {
+		for (let i = 1; i < this.width - 1; i++) {
+			for (let j = 1; j < this.height - 1; j++) {
 				this.grid2[i][j] = this.computeNext(i, j)
 			}
 		}
@@ -152,40 +152,35 @@ class Simulator {
 	}
 
 	wrapupZero() {
-		for (let i = -1; i <= this.width; i++) {
-			this.grid2[i][-1] = 0
-			this.grid2[i][this.height] = 0
+		for (let i = 0; i < this.width; i++) {
+			this.grid2[i][0] = 0
+			this.grid2[i][this.height - 1] = 0
 		}
-		for (let j = -1; j <= this.height; j++) {
-			this.grid2[-1][j] = 0
-			this.grid2[this.width][j] = 0
-			this.grid2[this.width - 1][j]
+		for (let j = 0; j < this.height; j++) {
+			this.grid2[0][j] = 0
+			this.grid2[this.width - 1][j] = 0
 		}
 	}
 
 	wrapupEqual() {
-		for (let i = 0; i <= this.width - 1; i++) {
-			this.grid2[i][-1] = this.grid2[i][0]
-			this.grid2[i][this.height] = this.grid2[i][this.height - 1]
+		for (let i = 0; i < this.width - 1; i++) {
+			this.grid2[i][0] = this.grid2[i][1]
+			this.grid2[i][this.height - 1] = this.grid2[i][this.height - 2]
 		}
-		for (let j = 0; j <= this.height - 1; j++) {
-			this.grid2[-1][j] = this.grid2[0][j]
-			this.grid2[this.width][j] = this.grid2[this.width - 1][j]
+		for (let j = 0; j < this.height - 1; j++) {
+			this.grid2[0][j] = this.grid2[1][j]
+			this.grid2[this.width - 1][j] = this.grid2[this.width - 2][j]
 		}
-		this.grid2[-1][-1] = this.grid2[0][0]
-		this.grid2[-1][this.height] = this.grid2[0][this.height - 1]
-		this.grid2[this.width][-1] = this.grid2[this.width - 1][0]
-		this.grid2[this.width][this.height] = this.grid2[this.width - 1][this.height - 1]
 	}
 
 	wrapupSecond() {
-		for (let i = 0; i <= this.width - 1; i++) {
-			this.grid2[i][-1] = 2 * this.grid2[i][0] - this.grid2[i][1]
-			this.grid2[i][this.height] = 2 * this.grid2[i][this.height - 1] - this.grid2[i][this.height - 2]
+		for (let i = 0; i < this.width - 1; i++) {
+			this.grid2[i][0] = 2 * this.grid2[i][1] - this.grid2[i][2]
+			this.grid2[i][this.height - 1] = 2 * this.grid2[i][this.height - 2] - this.grid2[i][this.height - 3]
 		}
-		for (let j = 0; j <= this.height - 1; j++) {
-			this.grid2[-1][j] = 2 * this.grid2[0][j] - this.grid2[1][j]
-			this.grid2[this.width][j] = 2 * this.grid2[this.width - 1][j] - this.grid2[this.width - 2][j]
+		for (let j = 0; j < this.height - 1; j++) {
+			this.grid2[0][j] = 2 * this.grid2[1][j] - this.grid2[2][j]
+			this.grid2[this.width - 1][j] = 2 * this.grid2[this.width - 2][j] - this.grid2[this.width - 3][j]
 		}
 	}
 
