@@ -101,33 +101,27 @@ class Simulator {
 	}
 
 	createGrid() {
-		const grid = []
-		for (let i = 0; i < this.width; i++) {
-			grid[i] = []
-			for (let j = 0; j < this.height; j++) {
-				grid[i][j] = 0
-			}
-		}
-		return grid
+		return new Float32Array(this.width * this.height)
 	}
 
 	advance() {
 		this.time += dt
 		for (let i = 1; i < this.width - 1; i++) {
 			for (let j = 1; j < this.height - 1; j++) {
-				this.grid2[i][j] = this.computeNext(i, j)
+				this.grid2[i + j * this.width] = this.computeNext(i, j)
 			}
 		}
 		this.wrapup()
 		if (this.time < period) {
-			this.grid2[this.cx][this.cy] = Math.sin(2 * Math.PI * this.time / period)
+			this.grid2[this.cx + this.cy * this.width] = Math.sin(2 * Math.PI * this.time / period)
 		}
 	}
 
 	computeNext(i, j) {
-		const previous = this.grid1[i][j]
-		const damped = (1 - this.damping * dt) * (previous - this.grid0[i][j])
-		const neighbors = this.grid1[i + 1][j] + this.grid1[i - 1][j] + this.grid1[i][j + 1] + this.grid1[i][j - 1]
+		const index = i + j * this.width
+		const previous = this.grid1[index]
+		const damped = (1 - this.damping * dt) * (previous - this.grid0[index])
+		const neighbors = this.grid1[index + 1] + this.grid1[index - 1] + this.grid1[index + this.width] + this.grid1[index - this.width]
 		const influence = this.propagation * (neighbors - 4 * previous)
 		return previous + damped + influence
 	}
@@ -148,39 +142,13 @@ class Simulator {
 	}
 
 	wrapup() {
-		this.wrapupZero()
-	}
-
-	wrapupZero() {
 		for (let i = 0; i < this.width; i++) {
-			this.grid2[i][0] = 0
-			this.grid2[i][this.height - 1] = 0
+			this.grid2[i] = 0
+			this.grid2[i + (this.height - 1) * this.width] = 0
 		}
 		for (let j = 0; j < this.height; j++) {
-			this.grid2[0][j] = 0
-			this.grid2[this.width - 1][j] = 0
-		}
-	}
-
-	wrapupEqual() {
-		for (let i = 0; i < this.width - 1; i++) {
-			this.grid2[i][0] = this.grid2[i][1]
-			this.grid2[i][this.height - 1] = this.grid2[i][this.height - 2]
-		}
-		for (let j = 0; j < this.height - 1; j++) {
-			this.grid2[0][j] = this.grid2[1][j]
-			this.grid2[this.width - 1][j] = this.grid2[this.width - 2][j]
-		}
-	}
-
-	wrapupSecond() {
-		for (let i = 0; i < this.width - 1; i++) {
-			this.grid2[i][0] = 2 * this.grid2[i][1] - this.grid2[i][2]
-			this.grid2[i][this.height - 1] = 2 * this.grid2[i][this.height - 2] - this.grid2[i][this.height - 3]
-		}
-		for (let j = 0; j < this.height - 1; j++) {
-			this.grid2[0][j] = 2 * this.grid2[1][j] - this.grid2[2][j]
-			this.grid2[this.width - 1][j] = 2 * this.grid2[this.width - 2][j] - this.grid2[this.width - 3][j]
+			this.grid2[j * this.width] = 0
+			this.grid2[this.width - 1 + j * this.width] = 0
 		}
 	}
 
@@ -188,12 +156,12 @@ class Simulator {
 		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
 		for (let i = 0; i < this.width; i++) {
 			for (let j = 0; j < this.height; j++) {
-				this.setPixel(i, j, this.grid2[i][j])
+				this.setPixel(i, j, this.grid2[i + j * this.width])
 			}
 		}
 		this.ctx.putImageData(this.raw, 0, 0);
 		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', 100, this.height + fontSize - 1)
-		//console.log(this.grid2[this.cx + 1][this.cy])
+		//console.log(this.grid2[this.cx + 1 + this.cy * this.width])
 	}
 
 	replace() {
