@@ -166,7 +166,7 @@ class Simulator {
 			}
 		}
 		this.ctx.putImageData(this.raw, 0, 0);
-		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', 100, this.height + fontSize - 1)
+		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', 100, this.screenHeight + fontSize - 1)
 		//console.log(this.grid2[this.cx + 1 + this.cy * this.width])
 	}
 
