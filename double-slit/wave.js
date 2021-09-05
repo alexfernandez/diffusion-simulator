@@ -7,6 +7,7 @@ const dt = 0.05
 const fontSize = 16
 const offscreenDamping = 0.99
 const offscreenBuffer = 100
+const amplitude = 10
 const slit = 20
 
 
@@ -129,12 +130,12 @@ class Simulator {
 	}
 
 	computeBarrier() {
-		const firstY = offscreenBuffer + 2 * this.screenHeight / 5
-		const secondY = offscreenBuffer + 4 * this.screenHeight / 5
+		const firstY = offscreenBuffer + this.screenHeight / 5
+		const secondY = offscreenBuffer + 3 * this.screenHeight / 5
 		console.log(`barriers: ${firstY}, ${secondY}`)
 		for (let i = 0; i < this.width; i++) {
 			const diff = Math.abs(this.cx - i)
-			if (diff > slit) {
+			if (diff > slit / 2) {
 				this.barrier[i + firstY * this.width] = 1
 			}
 			if (diff < slit || diff > 2 * slit) {
@@ -164,8 +165,8 @@ class Simulator {
 		}
 		this.wrapup()
 		if (totalPeriods && this.time < periodSeconds * totalPeriods) {
-			const j = offscreenBuffer + this.screenHeight / 5
-			this.grid2[this.cx + j * this.width] = 4 * Math.sin(2 * Math.PI * this.time / periodSeconds)
+			const j = offscreenBuffer + this.screenHeight / 10
+			this.grid2[this.cx + j * this.width] = amplitude * Math.sin(2 * Math.PI * this.time / periodSeconds)
 		}
 	}
 
