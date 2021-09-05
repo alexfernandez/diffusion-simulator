@@ -124,7 +124,7 @@ class Simulator {
 
 	computeBarrier() {
 		const firstY = offscreenBuffer + 2 * this.screenHeight / 5
-		const secondY = offscreenBuffer + 3 * this.screenHeight / 5
+		const secondY = offscreenBuffer + 4 * this.screenHeight / 5
 		console.log(`barriers: ${firstY}, ${secondY}`)
 		for (let i = 0; i < this.width; i++) {
 			const diff = Math.abs(this.cx - i)
@@ -150,7 +150,7 @@ class Simulator {
 		}
 		this.wrapup()
 		const j = offscreenBuffer + this.screenHeight / 5
-		this.grid2[this.cx + j * this.width] = Math.sin(2 * Math.PI * this.time / period)
+		this.grid2[this.cx + j * this.width] = 4 * Math.sin(2 * Math.PI * this.time / period)
 	}
 
 	computeNext(i, j) {
