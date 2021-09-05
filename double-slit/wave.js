@@ -5,7 +5,7 @@ const periodSeconds = 1
 const totalPeriods = 10
 const dt = 0.05
 const fontSize = 16
-const dampingCoefficient = 0.99
+const offscreenDamping = 0.99
 const offscreenBuffer = 100
 const slit = 20
 
@@ -61,14 +61,18 @@ class Simulator {
 	reset() {
 		this.pause()
 		console.log('resetting')
+		this.fillGrid(this.grid0, 0)
+		this.fillGrid(this.grid1, 0)
+		this.fillGrid(this.grid2, 0)
 		this.time = 0
 		this.speedms = getParameter('speed')
+		this.initialDamping = getParameter('damping')
 		this.propagation = this.computePropagation()
 		console.log('propagation ', this.propagation)
-		console.log('reset')
 		this.computeDampingField()
 		this.computeBarrier()
 		this.draw()
+		console.log('reset')
 	}
 
 	run() {
@@ -108,10 +112,11 @@ class Simulator {
 	}
 
 	computeDampingField() {
+		this.fillGrid(this.damping, this.initialDamping)
 		let transparency = 1
 		for (let s = 0; s < offscreenBuffer; s++) {
 			const d = offscreenBuffer - s
-			transparency *= dampingCoefficient
+			transparency *= offscreenDamping
 			for (let j = d; j < this.height - d; j++) {
 				this.damping[d + j * this.width] = 1 - transparency
 				this.damping[this.width - d + j * this.width] = 1 - transparency
@@ -140,6 +145,14 @@ class Simulator {
 
 	createGrid() {
 		return new Float32Array(this.width * this.height)
+	}
+
+	fillGrid(grid, value) {
+		for (let i = 0; i < this.width; i++) {
+			for (let j = 0; j < this.height; j++) {
+				grid[i + j * this.width] = value
+			}
+		}
 	}
 
 	advance() {
