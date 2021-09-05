@@ -1,7 +1,8 @@
 'use strict'
 
 const sizem = 50
-const period = 10
+const periodSeconds = 1
+const totalPeriods = 10
 const dt = 0.05
 const fontSize = 16
 const dampingCoefficient = 0.99
@@ -149,8 +150,10 @@ class Simulator {
 			}
 		}
 		this.wrapup()
-		const j = offscreenBuffer + this.screenHeight / 5
-		this.grid2[this.cx + j * this.width] = 4 * Math.sin(2 * Math.PI * this.time / period)
+		if (totalPeriods && this.time < periodSeconds * totalPeriods) {
+			const j = offscreenBuffer + this.screenHeight / 5
+			this.grid2[this.cx + j * this.width] = 4 * Math.sin(2 * Math.PI * this.time / periodSeconds)
+		}
 	}
 
 	computeNext(i, j) {
@@ -200,19 +203,26 @@ class Simulator {
 		const index = i + offscreenBuffer + (j + offscreenBuffer) * this.width
 		const value = this.grid2[index]
 		const position = (i + j * this.width) * 4
-		if (this.barrier[index] || value > 1 || value < -1) {
+		if (this.barrier[index]) {
 			this.raw.data[position] = 0
 			this.raw.data[position + 1] = 0
 			this.raw.data[position + 2] = 0
-		}
-		else if (value >= 0) {
+		} else if (value > 1) {
+			this.raw.data[position] = 255 * (1 / value)
+			this.raw.data[position + 1] = 0
+			this.raw.data[position + 2] = 0
+		} else if (value >= 0) {
 			this.raw.data[position] = 255
-			this.raw.data[position + 1] = (1 - value) * 255
-			this.raw.data[position + 2] = (1 - value) * 255
+			this.raw.data[position + 1] = 255 * (1 - value)
+			this.raw.data[position + 2] = 255 * (1 - value)
+		} else if (value < -1) {
+			this.raw.data[position] = 0
+			this.raw.data[position + 1] = 255 * (-1 / value)
+			this.raw.data[position + 2] = 0
 		} else {
-			this.raw.data[position] = (1 + value) * 255
+			this.raw.data[position] = 255 * (1 + value)
 			this.raw.data[position + 1] = 255
-			this.raw.data[position + 2] = (1 + value) * 255
+			this.raw.data[position + 2] = 255 * (1 + value)
 		}
 		this.raw.data[position + 3] = 255
 	}
