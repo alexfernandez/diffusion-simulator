@@ -6,7 +6,7 @@ const dt = 0.05
 const fontSize = 16
 const dampingCoefficient = 0.99
 const offscreenBuffer = 100
-
+const slit = 20
 
 
 window.onload = () => {
@@ -47,6 +47,7 @@ class Simulator {
 		this.grid1 = this.createGrid()
 		this.grid2 = this.createGrid()
 		this.damping = this.createGrid()
+		this.barrier = this.createGrid()
 		this.propagation = 0
 		this.updater = null
 		this.logger = null
@@ -54,6 +55,19 @@ class Simulator {
 		this.raw = ctx.getImageData(0, 0, this.width, this.height);
 		this.time = 0
 		this.speedms = 0
+	}
+
+	reset() {
+		this.pause()
+		console.log('resetting')
+		this.time = 0
+		this.speedms = getParameter('speed')
+		this.propagation = this.computePropagation()
+		console.log('propagation ', this.propagation)
+		console.log('reset')
+		this.computeDampingField()
+		this.computeBarrier()
+		this.draw()
 	}
 
 	run() {
@@ -86,18 +100,6 @@ class Simulator {
 		this.logger = null
 	}
 
-	reset() {
-		this.pause()
-		console.log('resetting')
-		this.time = 0
-		this.speedms = getParameter('speed')
-		this.propagation = this.computePropagation()
-		console.log('propagation ', this.propagation)
-		console.log('reset')
-		this.computeDampingField()
-		this.draw()
-	}
-
 	computePropagation() {
 		const dx = sizem / this.width
 		const interval = dt * this.speedms / dx
@@ -120,6 +122,21 @@ class Simulator {
 		}
 	}
 
+	computeBarrier() {
+		const firstY = offscreenBuffer + 2 * this.screenHeight / 5
+		const secondY = offscreenBuffer + 3 * this.screenHeight / 5
+		console.log(`barriers: ${firstY}, ${secondY}`)
+		for (let i = 0; i < this.width; i++) {
+			const diff = Math.abs(this.cx - i)
+			if (diff > slit) {
+				this.barrier[i + firstY * this.width] = 1
+			}
+			if (diff < slit || diff > 2 * slit) {
+				this.barrier[i + secondY * this.width] = 1
+			}
+		}
+	}
+
 	createGrid() {
 		return new Float32Array(this.width * this.height)
 	}
@@ -132,13 +149,15 @@ class Simulator {
 			}
 		}
 		this.wrapup()
-		if (this.time < period) {
-			this.grid2[this.cx + this.cy * this.width] = Math.sin(2 * Math.PI * this.time / period)
-		}
+		const j = offscreenBuffer + this.screenHeight / 5
+		this.grid2[this.cx + j * this.width] = Math.sin(2 * Math.PI * this.time / period)
 	}
 
 	computeNext(i, j) {
 		const index = i + j * this.width
+		if (this.barrier[index]) {
+			return 0
+		}
 		const previous = this.grid1[index]
 		const damping = this.damping[index]
 		const damped = (1 - damping * dt) * (previous - this.grid0[index])
@@ -162,7 +181,7 @@ class Simulator {
 		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
 		for (let i = 0; i < this.screenWidth; i++) {
 			for (let j = 0; j < this.screenHeight; j++) {
-				this.setPixel(i, j, this.grid2[i + offscreenBuffer + (j + offscreenBuffer) * this.width])
+				this.setPixel(i, j)
 			}
 		}
 		this.ctx.putImageData(this.raw, 0, 0);
@@ -177,23 +196,25 @@ class Simulator {
 		this.grid2 = recycled
 	}
 
-	setPixel(x, y, value) {
-		const index = (x + y * this.width) * 4
-		if (value > 1 || value < -1) {
-			this.raw.data[index] = 0
-			this.raw.data[index + 1] = 0
-			this.raw.data[index + 2] = 0
+	setPixel(i, j) {
+		const index = i + offscreenBuffer + (j + offscreenBuffer) * this.width
+		const value = this.grid2[index]
+		const position = (i + j * this.width) * 4
+		if (this.barrier[index] || value > 1 || value < -1) {
+			this.raw.data[position] = 0
+			this.raw.data[position + 1] = 0
+			this.raw.data[position + 2] = 0
 		}
 		else if (value >= 0) {
-			this.raw.data[index] = 255
-			this.raw.data[index + 1] = (1 - value) * 255
-			this.raw.data[index + 2] = (1 - value) * 255
+			this.raw.data[position] = 255
+			this.raw.data[position + 1] = (1 - value) * 255
+			this.raw.data[position + 2] = (1 - value) * 255
 		} else {
-			this.raw.data[index] = (1 + value) * 255
-			this.raw.data[index + 1] = 255
-			this.raw.data[index + 2] = (1 + value) * 255
+			this.raw.data[position] = (1 + value) * 255
+			this.raw.data[position + 1] = 255
+			this.raw.data[position + 2] = (1 + value) * 255
 		}
-		this.raw.data[index + 3] = 255
+		this.raw.data[position + 3] = 255
 	}
 }
 
