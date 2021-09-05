@@ -4,6 +4,8 @@ const sizem = 50
 const period = 10
 const dt = 0.05
 const fontSize = 16
+const dampingCoefficient = 0.99
+const offscreenBuffer = 100
 
 
 
@@ -35,13 +37,14 @@ function getCheckbox(name) {
 class Simulator {
 
 	constructor(width, height, ctx) {
-		this.width = width
-		this.height = height
-		this.cx = Math.round(width / 2)
-		this.cy = Math.round(height / 2)
+		this.width = width // + 2 * offscreenBuffer
+		this.height = height // + 2 * offscreenBuffer
+		this.cx = Math.round(this.width / 2)
+		this.cy = Math.round(this.height / 2)
 		this.grid0 = this.createGrid()
 		this.grid1 = this.createGrid()
 		this.grid2 = this.createGrid()
+		this.damping = this.createGrid()
 		this.propagation = 0
 		this.updater = null
 		this.logger = null
@@ -49,7 +52,6 @@ class Simulator {
 		this.raw = ctx.getImageData(0, 0, this.width, this.height);
 		this.time = 0
 		this.speedms = 0
-		this.damping = 0
 	}
 
 	run() {
@@ -87,10 +89,10 @@ class Simulator {
 		console.log('resetting')
 		this.time = 0
 		this.speedms = getParameter('speed')
-		this.damping = getParameter('damping')
 		this.propagation = this.computePropagation()
 		console.log('propagation ', this.propagation)
 		console.log('reset')
+		this.computeDampingField()
 		this.draw()
 	}
 
@@ -98,6 +100,22 @@ class Simulator {
 		const dx = sizem / this.width
 		const interval = dt * this.speedms / dx
 		return interval * interval
+	}
+
+	computeDampingField() {
+		let transparency = 1
+		for (let s = 0; s < offscreenBuffer; s++) {
+			const d = offscreenBuffer - s
+			transparency *= dampingCoefficient
+			for (let j = d; j < this.height - d; j++) {
+				this.damping[d + j * this.width] = 1 - transparency
+				this.damping[this.width - d + j * this.width] = 1 - transparency
+			}
+			for (let i = d; i < this.width - d; i++) {
+				this.damping[i + d * this.width] = 1 - transparency
+				this.damping[i + (this.height - d) * this.width] = 1 - transparency
+			}
+		}
 	}
 
 	createGrid() {
@@ -120,25 +138,11 @@ class Simulator {
 	computeNext(i, j) {
 		const index = i + j * this.width
 		const previous = this.grid1[index]
-		const damped = (1 - this.damping * dt) * (previous - this.grid0[index])
+		const damping = this.damping[index]
+		const damped = (1 - damping * dt) * (previous - this.grid0[index])
 		const neighbors = this.grid1[index + 1] + this.grid1[index - 1] + this.grid1[index + this.width] + this.grid1[index - this.width]
 		const influence = this.propagation * (neighbors - 4 * previous)
 		return previous + damped + influence
-	}
-
-	computeDamping(i, j) {
-		const lowratio = 0.25
-		const highratio = 0.30
-		const distancex = Math.abs(this.cx - i) / this.width
-		const distancey = Math.abs(this.cy - j) / this.height
-		if (distancex > highratio || distancey > highratio) {
-			return 1
-		}
-		if (distancex < lowratio && distancey < lowratio) {
-			return this.damping
-		}
-		const distance = Math.max(distancex, distancey)
-		return (distance - lowratio) / (highratio - lowratio)
 	}
 
 	wrapup() {
