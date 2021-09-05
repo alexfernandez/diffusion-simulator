@@ -4,27 +4,30 @@ const sizem = 50
 const periodSeconds = 1
 const dt = 0.02
 const fontSize = 16
+const graphSize = 50
 const offscreenDamping = 0.99
-const offscreenBuffer = 100
+const offscreenBuffer = 200
 const amplitude = 10
 const slit = 20
 
 
 window.onload = () => {
-	const canvas = document.getElementById('canvas');
-	const ctx = canvas.getContext('2d');
+	const canvas = document.getElementById('canvas')
+	const ctx = canvas.getContext('2d')
 	ctx.font = '16px sans-serif'
 	ctx.clearRect(0, 0, this.width, this.height)
-	const simulator = new Simulator(canvas.width, canvas.height - fontSize, ctx)
-	simulator.reset()
-	simulator.draw()
+	const height = canvas.height - fontSize - graphSize
+	const simulator = new Simulator(canvas.width, height, ctx)
+	const grapher = new Grapher(ctx, simulator)
+	const controller = new Controller(simulator, grapher)
+	controller.reset()
 	if (getCheckbox('autorun')) {
 		console.log('running')
-		simulator.run()
+		controller.run()
 	}
-	document.getElementById('run').onclick = () => simulator.run()
-	document.getElementById('pause').onclick = () => simulator.pause()
-	document.getElementById('reset').onclick = () => simulator.reset()
+	document.getElementById('run').onclick = () => controller.run()
+	document.getElementById('pause').onclick = () => controller.pause()
+	document.getElementById('reset').onclick = () => controller.reset()
 }
 
 function getParameter(name) {
@@ -35,61 +38,31 @@ function getCheckbox(name) {
 	return document.getElementById(name).checked
 }
 
-class Simulator {
-
-	constructor(width, height, ctx) {
-		this.screenWidth = width
-		this.screenHeight = height
-		this.width = this.screenWidth + 2 * offscreenBuffer
-		this.height = this.screenHeight + 2 * offscreenBuffer
-		this.cx = Math.round(this.width / 2)
-		this.cy = Math.round(this.height / 2)
-		this.grid0 = this.createGrid()
-		this.grid1 = this.createGrid()
-		this.grid2 = this.createGrid()
-		this.damping = this.createGrid()
-		this.barrier = this.createGrid()
-		this.propagation = 0
+class Controller {
+	constructor(simulator, grapher) {
+		this.simulator = simulator
+		this.grapher = grapher
 		this.updater = null
 		this.logger = null
-		this.ctx = ctx
-		this.raw = ctx.getImageData(0, 0, this.width, this.height);
-		this.time = 0
-		this.speedms = 0
-		this.totalPeriods = 0
 	}
 
 	reset() {
 		this.pause()
 		console.log('resetting')
-		this.fillGrid(this.grid0, 0)
-		this.fillGrid(this.grid1, 0)
-		this.fillGrid(this.grid2, 0)
-		this.time = 0
-		this.speedms = getParameter('speed')
-		this.initialDamping = getParameter('damping')
-		this.totalPeriods = getParameter('periods')
-		this.propagation = this.computePropagation()
-		console.log('propagation ', this.propagation)
-		this.computeDampingField()
-		this.computeBarrier()
-		this.draw()
+		this.simulator.reset()
 		console.log('reset')
 	}
 
 	run() {
-		if (this.propagation > 0.5) {
-			alert(`Propagation ${this.propagation} too big > 0.5, aborting`)
+		if (this.updater) return
+		if (!this.simulator.isValid()) {
 			return
 		}
-		if (this.updater) return
 		let total = 0
 		let rounds = 0
 		this.updater = window.setInterval(() => {
 			const start = Date.now()
-			this.advance()
-			this.draw()
-			this.replace()
+			this.simulator.update()
 			const elapsed = Date.now() - start
 			total += elapsed
 			rounds += 1
@@ -105,6 +78,57 @@ class Simulator {
 		window.clearInterval(this.logger)
 		this.updater = null
 		this.logger = null
+	}
+}
+
+class Simulator {
+	constructor(width, height, ctx) {
+		this.screenWidth = width
+		this.screenHeight = height
+		this.width = this.screenWidth + 2 * offscreenBuffer
+		this.height = this.screenHeight + 2 * offscreenBuffer
+		this.cx = Math.round(this.width / 2)
+		this.cy = Math.round(this.height / 2)
+		this.grid0 = this.createGrid()
+		this.grid1 = this.createGrid()
+		this.grid2 = this.createGrid()
+		this.damping = this.createGrid()
+		this.barrier = this.createGrid()
+		this.propagation = 0
+		this.ctx = ctx
+		this.raw = ctx.getImageData(0, 0, this.width, this.height)
+		this.time = 0
+		this.speedms = 0
+		this.totalPeriods = 0
+	}
+
+	reset() {
+		this.fillGrid(this.grid0, 0)
+		this.fillGrid(this.grid1, 0)
+		this.fillGrid(this.grid2, 0)
+		this.time = 0
+		this.speedms = getParameter('speed')
+		this.initialDamping = getParameter('damping')
+		this.totalPeriods = getParameter('periods')
+		this.propagation = this.computePropagation()
+		console.log('propagation ', this.propagation)
+		this.computeDampingField()
+		this.computeBarrier()
+		this.draw()
+	}
+
+	isValid() {
+		if (this.propagation > 0.5) {
+			alert(`Propagation ${this.propagation} too big > 0.5, aborting`)
+			return false
+		}
+		return true
+	}
+
+	update() {
+		this.advance()
+		this.draw()
+		this.replace()
 	}
 
 	computePropagation() {
@@ -240,6 +264,14 @@ class Simulator {
 			this.raw.data[position + 2] = 255 * (1 + value)
 		}
 		this.raw.data[position + 3] = 255
+	}
+}
+
+class Grapher {
+	constructor(ctx, simulator) {
+		this.ctx = ctx
+		this.raw = ctx.getImageData(0, simulator.height, simulator.width, simulator.height + graphSize)
+		this.simulator = simulator
 	}
 }
 
