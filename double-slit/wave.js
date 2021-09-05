@@ -2,7 +2,6 @@
 
 const sizem = 50
 const periodSeconds = 1
-const totalPeriods = 0
 const dt = 0.02
 const fontSize = 16
 const offscreenDamping = 0.99
@@ -57,6 +56,7 @@ class Simulator {
 		this.raw = ctx.getImageData(0, 0, this.width, this.height);
 		this.time = 0
 		this.speedms = 0
+		this.totalPeriods = 0
 	}
 
 	reset() {
@@ -68,6 +68,7 @@ class Simulator {
 		this.time = 0
 		this.speedms = getParameter('speed')
 		this.initialDamping = getParameter('damping')
+		this.totalPeriods = getParameter('periods')
 		this.propagation = this.computePropagation()
 		console.log('propagation ', this.propagation)
 		this.computeDampingField()
@@ -164,7 +165,7 @@ class Simulator {
 			}
 		}
 		this.wrapup()
-		if (!totalPeriods || this.time < periodSeconds * totalPeriods) {
+		if (!this.totalPeriods || this.time < periodSeconds * this.totalPeriods) {
 			const j = offscreenBuffer + this.screenHeight / 10
 			this.grid2[this.cx + j * this.width] = amplitude * Math.sin(2 * Math.PI * this.time / periodSeconds)
 		}
