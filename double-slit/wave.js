@@ -37,8 +37,10 @@ function getCheckbox(name) {
 class Simulator {
 
 	constructor(width, height, ctx) {
-		this.width = width // + 2 * offscreenBuffer
-		this.height = height // + 2 * offscreenBuffer
+		this.screenWidth = width
+		this.screenHeight = height
+		this.width = this.screenWidth + 2 * offscreenBuffer
+		this.height = this.screenHeight + 2 * offscreenBuffer
 		this.cx = Math.round(this.width / 2)
 		this.cy = Math.round(this.height / 2)
 		this.grid0 = this.createGrid()
@@ -158,9 +160,9 @@ class Simulator {
 
 	draw() {
 		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
-		for (let i = 0; i < this.width; i++) {
-			for (let j = 0; j < this.height; j++) {
-				this.setPixel(i, j, this.grid2[i + j * this.width])
+		for (let i = 0; i < this.screenWidth; i++) {
+			for (let j = 0; j < this.screenHeight; j++) {
+				this.setPixel(i, j, this.grid2[i + offscreenBuffer + (j + offscreenBuffer) * this.width])
 			}
 		}
 		this.ctx.putImageData(this.raw, 0, 0);
