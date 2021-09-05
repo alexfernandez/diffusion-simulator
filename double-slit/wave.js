@@ -2,7 +2,7 @@
 
 const sizem = 50
 const periodSeconds = 1
-const totalPeriods = 10
+const totalPeriods = 0
 const dt = 0.02
 const fontSize = 16
 const offscreenDamping = 0.99
@@ -164,7 +164,7 @@ class Simulator {
 			}
 		}
 		this.wrapup()
-		if (totalPeriods && this.time < periodSeconds * totalPeriods) {
+		if (!totalPeriods || this.time < periodSeconds * totalPeriods) {
 			const j = offscreenBuffer + this.screenHeight / 10
 			this.grid2[this.cx + j * this.width] = amplitude * Math.sin(2 * Math.PI * this.time / periodSeconds)
 		}
