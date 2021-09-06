@@ -299,15 +299,20 @@ class Grapher {
 		for (let i = 0; i < this.width; i++) {
 			const index = i + offscreenBuffer + this.simulator.readY * this.simulator.width
 			const value = this.simulator.grid2[index]
-			this.data[i] += Math.abs(value)
+			this.data[i] += value * value
 			if (this.data[i] > absMax) absMax = this.data[i]
 		}
 		for (let i = 0; i < this.width; i++) {
+			const basePos = (i + (this.height - 1) * this.width) * 4
+			this.raw.data[basePos] = 200
+			this.raw.data[basePos + 1] = 200
+			this.raw.data[basePos + 2] = 200
+			this.raw.data[basePos + 3] = 255
 			const j = Math.floor(this.height * Math.abs(this.data[i]) / absMax) || 0
 			const position = (i + (this.height - j - 1) * this.width) * 4
-			this.raw.data[position] = 0
-			this.raw.data[position + 1] = 0
-			this.raw.data[position + 2] = 0
+			this.raw.data[position] = 127
+			this.raw.data[position + 1] = 127
+			this.raw.data[position + 2] = 127
 			this.raw.data[position + 3] = 255
 		}
 		this.ctx.putImageData(this.raw, 0, this.starty);
