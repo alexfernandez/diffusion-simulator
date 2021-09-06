@@ -116,7 +116,7 @@ class Simulator {
 		console.log('propagation ', this.propagation)
 		this.computeDampingField()
 		this.computeBarrier()
-		this.readY = offscreenBuffer + 4 * this.screenHeight / 5
+		this.readY = offscreenBuffer + this.screenHeight - 1
 		console.log(`graphing: ${this.readY}`)
 		this.draw()
 	}
@@ -298,11 +298,11 @@ class Grapher {
 		for (let i = 0; i < this.width; i++) {
 			const index = i + offscreenBuffer + this.simulator.readY * this.simulator.width
 			const value = this.simulator.grid2[index]
-			this.data[i] += value * value
-			if (Math.abs(this.data[i]) > absMax) absMax = Math.abs(this.data[i])
+			this.data[i] += Math.abs(value)
+			if (this.data[i] > absMax) absMax = this.data[i]
 		}
 		for (let i = 0; i < this.width; i++) {
-			const j = Math.round(this.height * Math.abs(this.data[i]) / absMax)
+			const j = Math.floor(this.height * Math.abs(this.data[i]) / absMax) || 0
 			const position = (i + (this.height - j - 1) * this.width) * 4
 			this.raw.data[position] = 0
 			this.raw.data[position + 1] = 0
@@ -310,7 +310,7 @@ class Grapher {
 			this.raw.data[position + 3] = 255
 		}
 		this.ctx.putImageData(this.raw, 0, this.starty);
-		this.ctx.fillText('max = ' + absMax.toFixed(0), this.width / 3, this.starty + this.height + fontSize - 1)
+		this.ctx.fillText('max: ' + absMax.toFixed(2), this.width / 3, this.starty + this.height + fontSize - 1)
 	}
 }
 
