@@ -8,7 +8,8 @@ const graphSize = 50
 const offscreenDamping = 0.99
 const offscreenBuffer = 200
 const amplitude = 10
-const slit = 20
+const slitSize = 10
+const slitSeparation = 80
 
 
 window.onload = () => {
@@ -164,10 +165,10 @@ class Simulator {
 		console.log(`barriers: ${firstY}, ${secondY}`)
 		for (let i = 0; i < this.width; i++) {
 			const diff = Math.abs(this.cx - i)
-			if (diff > slit / 2) {
+			if (diff > slitSize / 2) {
 				this.barrier[i + firstY * this.width] = 1
 			}
-			if (diff < slit || diff > 2 * slit) {
+			if (diff < slitSeparation / 2 || diff > slitSeparation / 2 + slitSize) {
 				this.barrier[i + secondY * this.width] = 1
 			}
 		}
