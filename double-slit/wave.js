@@ -16,7 +16,7 @@ window.onload = () => {
 	const ctx = canvas.getContext('2d')
 	ctx.font = '16px sans-serif'
 	ctx.clearRect(0, 0, this.width, this.height)
-	const height = canvas.height - fontSize - graphSize
+	const height = canvas.height - fontSize - graphSize - fontSize
 	const simulator = new Simulator(canvas.width, height, ctx)
 	const grapher = new Grapher(ctx, simulator)
 	const controller = new Controller(simulator, grapher)
@@ -63,6 +63,7 @@ class Controller {
 		this.updater = window.setInterval(() => {
 			const start = Date.now()
 			this.simulator.update()
+			this.grapher.update()
 			const elapsed = Date.now() - start
 			total += elapsed
 			rounds += 1
@@ -100,6 +101,7 @@ class Simulator {
 		this.time = 0
 		this.speedms = 0
 		this.totalPeriods = 0
+		this.readY = 0
 	}
 
 	reset() {
@@ -114,6 +116,8 @@ class Simulator {
 		console.log('propagation ', this.propagation)
 		this.computeDampingField()
 		this.computeBarrier()
+		this.readY = offscreenBuffer + 4 * this.screenHeight / 5
+		console.log(`graphing: ${this.readY}`)
 		this.draw()
 	}
 
@@ -220,14 +224,14 @@ class Simulator {
 	}
 
 	draw() {
-		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
 		for (let i = 0; i < this.screenWidth; i++) {
 			for (let j = 0; j < this.screenHeight; j++) {
 				this.setPixel(i, j)
 			}
 		}
 		this.ctx.putImageData(this.raw, 0, 0);
-		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', 100, this.screenHeight + fontSize - 1)
+		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
+		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', this.screenWidth / 3, this.screenHeight + fontSize - 1)
 		//console.log(this.grid2[this.cx + 1 + this.cy * this.width])
 	}
 
@@ -263,6 +267,11 @@ class Simulator {
 			this.raw.data[position + 1] = 255
 			this.raw.data[position + 2] = 255 * (1 + value)
 		}
+		if (j == this.readY - offscreenBuffer) {
+			this.raw.data[position] = Math.min(this.raw.data[position], 200)
+			this.raw.data[position + 1] = Math.min(this.raw.data[position + 1], 200)
+			this.raw.data[position + 2] = Math.min(this.raw.data[position + 2], 200)
+		}
 		this.raw.data[position + 3] = 255
 	}
 }
@@ -270,8 +279,38 @@ class Simulator {
 class Grapher {
 	constructor(ctx, simulator) {
 		this.ctx = ctx
-		this.raw = ctx.getImageData(0, simulator.height, simulator.width, simulator.height + graphSize)
 		this.simulator = simulator
+		this.width = simulator.screenWidth
+		this.height = graphSize
+		this.starty = simulator.screenHeight + fontSize
+		this.raw = ctx.getImageData(0, this.starty, this.width, this.starty + this.height)
+		this.data = []
+		for (let i = 0; i < this.width; i++) {
+			this.data[i] = 0
+		}
+	}
+
+	update() {
+		for (let pos = 0; pos < this.width * this.height * 4; pos++) {
+			this.raw.data[pos] = 255
+		}
+		let absMax = 0
+		for (let i = 0; i < this.width; i++) {
+			const index = i + offscreenBuffer + this.simulator.readY * this.simulator.width
+			const value = this.simulator.grid2[index]
+			this.data[i] += value * value
+			if (Math.abs(this.data[i]) > absMax) absMax = Math.abs(this.data[i])
+		}
+		for (let i = 0; i < this.width; i++) {
+			const j = Math.round(this.height * Math.abs(this.data[i]) / absMax)
+			const position = (i + (this.height - j - 1) * this.width) * 4
+			this.raw.data[position] = 0
+			this.raw.data[position + 1] = 0
+			this.raw.data[position + 2] = 0
+			this.raw.data[position + 3] = 255
+		}
+		this.ctx.putImageData(this.raw, 0, this.starty);
+		this.ctx.fillText('max = ' + absMax.toFixed(0), this.width / 3, this.starty + this.height + fontSize - 1)
 	}
 }
 
