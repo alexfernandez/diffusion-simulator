@@ -1,57 +1,74 @@
 <!DOCTYPE html>
 <html>
-  <head>
-	<meta charset="utf-8" />
-    <title>Double-slit Wave simulator</title>
-    <script src="wave.js"></script>
-    <style type="text/css">
-      #form {
-        display: inline-block;
-        vertical-align: top;
-        margin: 20px;
-      }
-      canvas {
-        border: solid black 1px;
-      }
-    </style>
+	<head>
+		<meta charset="utf-8" />
+		<title>Double-slit Wave Simulator</title>
+		<script src="wave.js"></script>
+		<style type="text/css">
+#form {
+	display: inline-block;
+	vertical-align: top;
+	margin: 20px;
+}
+	  canvas {
+		  border: solid black 1px;
+	  }
+		</style>
 
-  </head>
-  <body>
-    <h1>𝌂 Double-slit 🌊 Wave simulator</h1>
-    <canvas id="canvas" width="200" height="532"></canvas>
-	  <br>
-	  <button id="run" type="button">run</button>
-	  <button id="pause" type="button">pause</button>
-	  <button id="reset" type="button">reset</button>
-	  <br>
-    <div id="form">
-    <h3>Tunable parameters</h3>
-    <form id="params">
-	  <br>
-      <label for="speed">Speed (m/s)</label>
-      <input type="number" id="speed" value="2">
-      <br>
-      <label for="damping">Damping (0 - 1)</label>
-      <input type="number" id="damping" value="0">
-      <br>
-      <label for="periods">Total periods</label>
-      <input type="number" id="periods" value="0">
-      <br>
-      <label for="autorun">Auto-run</label>
-      <input type="checkbox" id="autorun" checked="true">
-      <br>
-    </form>
-    </div>
-    <p>
-	For the upcoming article "Understanding Quantum Mechanics".
-	<!--
-    See
-    <a href="/2021/understanding-quantum-mechanics">Understanding Quantum Mechanics</a>.
-	-->
-	Simulated using
-	<a href="https://www.slideshare.net/AmrMousa12/2-dimensional-wave-equation-analytical-and-numerical-solution">
-		Amr Mousa: 2 Dimensional Wave Equation Analytical and Numerical Solution
-	</a>.
-    </p>
-  </body>
+	</head>
+	<body>
+		<h1>𝌂 Double-slit 🌊 Wave Simulator</h1>
+		<canvas id="canvas" width="200" height="532"></canvas>
+		<br>
+		<button id="run" type="button">run</button>
+		<button id="pause" type="button">pause</button>
+		<button id="reset" type="button">reset</button>
+		<br>
+		<div id="form">
+			<h3>Tunable Parameters</h3>
+			<form id="params">
+				<br>
+				<label for="speed">Speed (m/s)</label>
+				<input type="number" id="speed" value="2">
+				<br>
+				<label for="damping">Damping (0 - 1)</label>
+				<input type="number" id="damping" value="0">
+				<br>
+				<label for="periods">Total periods</label>
+				<input type="number" id="periods" value="0">
+				<br>
+				<label for="autorun">Auto-run</label>
+				<input type="checkbox" id="autorun" checked="true">
+				<br>
+			</form>
+		</div>
+		<h3>Technical Details</h3>
+		<p>
+		Simulated using
+		<a href="https://www.slideshare.net/AmrMousa12/2-dimensional-wave-equation-analytical-and-numerical-solution">
+			Amr Mousa: 2 Dimensional Wave Equation Analytical and Numerical Solution
+		</a>, based on the 2D wave equation.
+		Note that the
+		<a href="https://en.wikipedia.org/wiki/Wave_equation">wave equation</a>
+		applies equally to fluids (Navier-Stokes), sound and light propagation,
+		and to quantum mechanics.
+		</p>
+		<p>
+		Bottom graph is a projection of the accumulated square of the amplitude for the waves that reach the bottom line,
+		which should approximate the energy density for a wave
+		or the probability of finding a particle for the Schrödinger equation.
+		</p>
+		<p>
+		There are simulations online for the Schrödinger equation,
+		such as <a href="https://github.com/artmenlope/double-slit-2d-schrodinger">this great one from Arturo Mena</a>.
+		</p>
+		<h3>Purpose</h3>
+		<p>
+		For the upcoming article "Understanding Quantum Mechanics".
+		<!--
+	  See
+	  <a href="/2021/understanding-quantum-mechanics">Understanding Quantum Mechanics</a>.
+		-->
+		</p>
+	</body>
 </html>
