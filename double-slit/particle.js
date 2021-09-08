@@ -1,11 +1,9 @@
 'use strict'
 
-const sizem = 50
-const periodSeconds = 1
-const dt = 0.02
+const dt = 0.005
 const fontSize = 16
 const graphSize = 50
-const amplitude = 10
+const particlesPerSecond = 20
 const slitWidth = 10
 const slitDepth = 10
 const slitSeparation = 80
@@ -55,9 +53,6 @@ class Controller {
 
 	run() {
 		if (this.updater) return
-		if (!this.simulator.isValid()) {
-			return
-		}
 		let total = 0
 		let rounds = 0
 		this.updater = window.setInterval(() => {
@@ -89,49 +84,33 @@ class Simulator {
 		this.cx = Math.round(this.width / 2)
 		this.cy = Math.round(this.height / 2)
 		this.particles = []
-		this.grid = this.createGrid()
+		this.goal = []
 		this.barrier = this.createGrid()
-		this.propagation = 0
 		this.ctx = ctx
 		this.raw = ctx.getImageData(0, 0, this.width, this.height)
 		this.time = 0
 		this.speedms = 0
 		this.totalPeriods = 0
 		this.readY = 0
+		this.lastCreated = 0
 	}
 
 	reset() {
-		this.fillGrid(this.grid0, 0)
-		this.fillGrid(this.grid1, 0)
-		this.fillGrid(this.grid2, 0)
+		for (let i = 0; i < this.width; i++) {
+			this.goal[i] = 0
+		}
 		this.time = 0
 		this.speedms = getParameter('speed')
-		this.propagation = this.computePropagation()
-		console.log('propagation ', this.propagation)
 		this.computeBarrier()
 		this.readY = this.height - 1
 		console.log(`graphing: ${this.readY}`)
 		this.draw()
 	}
 
-	isValid() {
-		if (this.propagation > 0.5) {
-			alert(`Propagation ${this.propagation} too big > 0.5, aborting`)
-			return false
-		}
-		return true
-	}
-
 	update() {
+		this.addParticles()
 		this.advance()
 		this.draw()
-		this.replace()
-	}
-
-	computePropagation() {
-		const dx = sizem / this.width
-		const interval = dt * this.speedms / dx
-		return interval * interval
 	}
 
 	computeBarrier() {
@@ -155,100 +134,81 @@ class Simulator {
 		return new Float32Array(this.width * this.height)
 	}
 
-	fillGrid(grid, value) {
-		for (let i = 0; i < this.width; i++) {
-			for (let j = 0; j < this.height; j++) {
-				grid[i + j * this.width] = value
-			}
+	addParticles() {
+		if (this.time - this.lastCreated < 1 / particlesPerSecond) {
+			return
 		}
+		const particle = new Particle(this.cx, this.height / 10, Math.random() - 0.5, 1)
+		this.particles.push(particle)
+		this.lastCreated = this.time
 	}
 
 	advance() {
 		this.time += dt
-		for (let i = 1; i < this.width - 1; i++) {
-			for (let j = 1; j < this.height - 1; j++) {
-				this.grid2[i + j * this.width] = this.computeNext(i, j)
-			}
-		}
-		this.wrapup()
-		if (!this.totalPeriods || this.time < periodSeconds * this.totalPeriods) {
-			const j = this.height / 10
-			this.grid2[this.cx + j * this.width] = amplitude * Math.sin(2 * Math.PI * this.time / periodSeconds)
-		}
-	}
-
-	computeNext(i, j) {
-		const index = i + j * this.width
-		if (this.barrier[index]) {
-			return 0
-		}
-		const previous = this.grid1[index]
-		const neighbors = this.grid1[index + 1] + this.grid1[index - 1] + this.grid1[index + this.width] + this.grid1[index - this.width]
-		const influence = this.propagation * (neighbors - 4 * previous)
-		return previous + influence
-	}
-
-	wrapup() {
-		for (let i = 0; i < this.width; i++) {
-			this.grid2[i] = 0
-			this.grid2[i + (this.height - 1) * this.width] = 0
-		}
-		for (let j = 0; j < this.height; j++) {
-			this.grid2[j * this.width] = 0
-			this.grid2[this.width - 1 + j * this.width] = 0
+		for (const particle of this.particles) {
+			particle.advance()
 		}
 	}
 
 	draw() {
-		for (let i = 0; i < this.screenWidth; i++) {
+		for (let i = 0; i < this.width; i++) {
 			for (let j = 0; j < this.height; j++) {
-				this.setPixel(i, j)
+				if (this.barrier[i + j * this.width]) {
+					this.setPixel(i, j, 0, 0, 0)
+				} else if (j == this.readY) {
+					this.setPixel(i, j, 200, 200, 200)
+				} else {
+					this.setPixel(i, j, 255, 255, 255)
+				}
 			}
+		}
+		for (let i = 0; i < this.particles.length; i++) {
+			const particle = this.particles[i]
+			if (particle.x < 0 || particle.x >= this.width) {
+				this.particles.splice(i, 1)
+				i -= 1
+			} else if (particle.y > this.readY) {
+				this.goal[particle.getX()] += 1
+				this.particles.splice(i, 1)
+				i -= 1
+			} else {
+				this.setPixel(particle.getX(), particle.getY())
+			}
+
 		}
 		this.ctx.putImageData(this.raw, 0, 0);
 		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
-		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', this.screenWidth / 3, this.height + fontSize - 1)
-		//console.log(this.grid2[this.cx + 1 + this.cy * this.width])
+		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', this.width / 3, this.height + fontSize - 1)
 	}
 
-	replace() {
-		const recycled = this.grid0
-		this.grid0 = this.grid1
-		this.grid1 = this.grid2
-		this.grid2 = recycled
-	}
-
-	setPixel(i, j) {
-		const index = i + j * this.width
-		const value = this.grid2[index]
+	setPixel(i, j, r, g, b) {
 		const position = (i + j * this.width) * 4
-		if (this.barrier[index]) {
-			this.raw.data[position] = 0
-			this.raw.data[position + 1] = 0
-			this.raw.data[position + 2] = 0
-		} else if (value > 1) {
-			this.raw.data[position] = 255 * (1 / value)
-			this.raw.data[position + 1] = 0
-			this.raw.data[position + 2] = 0
-		} else if (value >= 0) {
-			this.raw.data[position] = 255
-			this.raw.data[position + 1] = 255 * (1 - value)
-			this.raw.data[position + 2] = 255 * (1 - value)
-		} else if (value < -1) {
-			this.raw.data[position] = 0
-			this.raw.data[position + 1] = 255 * (-1 / value)
-			this.raw.data[position + 2] = 0
-		} else {
-			this.raw.data[position] = 255 * (1 + value)
-			this.raw.data[position + 1] = 255
-			this.raw.data[position + 2] = 255 * (1 + value)
-		}
-		if (j == this.readY) {
-			this.raw.data[position] = Math.min(this.raw.data[position], 200)
-			this.raw.data[position + 1] = Math.min(this.raw.data[position + 1], 200)
-			this.raw.data[position + 2] = Math.min(this.raw.data[position + 2], 200)
-		}
+		this.raw.data[position] = r
+		this.raw.data[position + 1] = g
+		this.raw.data[position + 2] = b
 		this.raw.data[position + 3] = 255
+	}
+}
+
+class Particle {
+	constructor(x, y, speedx, speedy) {
+		this.x = x
+		this.y = y
+		this.speedx = speedx
+		this.speedy = speedy
+	}
+
+	advance() {
+		this.x += this.speedx
+		this.y += this.speedy
+	}
+
+	getX() {
+		return Math.round(this.x)
+	}
+
+	getY() {
+		return Math.round(this.y)
 	}
 }
 
@@ -256,26 +216,22 @@ class Grapher {
 	constructor(ctx, simulator) {
 		this.ctx = ctx
 		this.simulator = simulator
-		this.width = simulator.screenWidth
+		this.width = simulator.width
 		this.height = graphSize
 		this.starty = simulator.height + fontSize
 		this.raw = ctx.getImageData(0, this.starty, this.width, this.starty + this.height)
-		this.data = []
-		for (let i = 0; i < this.width; i++) {
-			this.data[i] = 0
-		}
 	}
 
 	update() {
+		this.raw.data.fill(255, 0, this.width * this.height * 4)
+		/*
 		for (let pos = 0; pos < this.width * this.height * 4; pos++) {
 			this.raw.data[pos] = 255
 		}
+		*/
 		let absMax = 0
 		for (let i = 0; i < this.width; i++) {
-			const index = i + this.simulator.readY * this.simulator.width
-			const value = this.simulator.grid2[index]
-			this.data[i] += value * value
-			if (this.data[i] > absMax) absMax = this.data[i]
+			if (this.simulator.goal[i] > absMax) absMax = this.simulator.goal[i]
 		}
 		for (let i = 0; i < this.width; i++) {
 			const basePos = (i + (this.height - 1) * this.width) * 4
@@ -283,7 +239,7 @@ class Grapher {
 			this.raw.data[basePos + 1] = 200
 			this.raw.data[basePos + 2] = 200
 			this.raw.data[basePos + 3] = 255
-			const j = Math.floor(this.height * Math.abs(this.data[i]) / absMax) || 0
+			const j = Math.floor(this.height * Math.abs(this.simulator.goal[i]) / absMax) || 0
 			const position = (i + (this.height - j - 1) * this.width) * 4
 			this.raw.data[position] = 127
 			this.raw.data[position + 1] = 127
