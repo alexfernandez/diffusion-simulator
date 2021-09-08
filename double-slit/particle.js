@@ -88,9 +88,8 @@ class Simulator {
 		this.height = height
 		this.cx = Math.round(this.width / 2)
 		this.cy = Math.round(this.height / 2)
-		this.grid0 = this.createGrid()
-		this.grid1 = this.createGrid()
-		this.grid2 = this.createGrid()
+		this.particles = []
+		this.grid = this.createGrid()
 		this.barrier = this.createGrid()
 		this.propagation = 0
 		this.ctx = ctx
