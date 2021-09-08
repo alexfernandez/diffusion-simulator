@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Double-slit Particle Simulator</title>
+		<script src="particle.js"></script>
+		<style type="text/css">
+#form {
+	display: inline-block;
+	vertical-align: top;
+	margin: 20px;
+}
+	  canvas {
+		  border: solid black 1px;
+	  }
+		</style>
+
+	</head>
+	<body>
+		<h1>𝌂 Double-slit 🎱 Particle Simulator</h1>
+		<canvas id="canvas" width="200" height="532"></canvas>
+		<br>
+		<button id="run" type="button">run</button>
+		<button id="pause" type="button">pause</button>
+		<button id="reset" type="button">reset</button>
+		<br>
+		<div id="form">
+			<h3>Tunable Parameters</h3>
+			<form id="params">
+				<br>
+				<label for="speed">Speed (m/s)</label>
+				<input type="number" id="speed" value="1">
+				<br>
+				<label for="autorun">Auto-run</label>
+				<input type="checkbox" id="autorun" checked="true">
+				<br>
+			</form>
+		</div>
+		<h3>Technical Details</h3>
+		<p>
+		Particle simulation.
+		</p>
+		<p>
+		Bottom graph is a projection of the accumulated number of particles that reach the bottom line.
+		</p>
+		<h3>References</h3>
+		<ul>
+			<li>
+				For the upcoming article "Understanding Quantum Mechanics" (unpublished).
+				<!--
+		See
+		<a href="/2021/understanding-quantum-mechanics">Understanding Quantum Mechanics</a>.
+				-->
+			</li>
+			<li>
+				Don't miss
+				<a href=https://www.youtube.com/watch?v=Ja0HSFj8Imc&list=PLS3_1JNX8dEh5YcO-Y05stU0u_T9nqIlF&index=6">
+					Richard Feynman's awesome video
+				</a>.
+			</li>
+			<li>
+				Don't miss either
+				<a href="https://www.feynmanlectures.caltech.edu/III_01.html">
+					Feynman's Lectures on Physics: Quantum Behavior
+				</a>.
+			</li>
+		</p>
+	</body>
+</html>
