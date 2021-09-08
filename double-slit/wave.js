@@ -193,7 +193,6 @@ class Simulator {
 				this.grid2[i + j * this.width] = this.computeNext(i, j)
 			}
 		}
-		this.wrapup()
 		if (!this.totalPeriods || this.time < periodSeconds * this.totalPeriods) {
 			const j = offscreenBuffer + this.screenHeight / 10
 			this.grid2[this.cx + j * this.width] = amplitude * Math.sin(2 * Math.PI * this.time / periodSeconds)
@@ -211,17 +210,6 @@ class Simulator {
 		const neighbors = this.grid1[index + 1] + this.grid1[index - 1] + this.grid1[index + this.width] + this.grid1[index - this.width]
 		const influence = this.propagation * (neighbors - 4 * previous)
 		return previous + damped + influence
-	}
-
-	wrapup() {
-		for (let i = 0; i < this.width; i++) {
-			this.grid2[i] = 0
-			this.grid2[i + (this.height - 1) * this.width] = 0
-		}
-		for (let j = 0; j < this.height; j++) {
-			this.grid2[j * this.width] = 0
-			this.grid2[this.width - 1 + j * this.width] = 0
-		}
 	}
 
 	draw() {
