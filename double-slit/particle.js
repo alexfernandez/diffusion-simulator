@@ -308,13 +308,13 @@ class Grapher {
 			if (this.simulator.goal[i] > absMax) absMax = this.simulator.goal[i]
 		}
 		for (let i = 0; i < this.width; i++) {
-			const basePos = (i + (this.height - 1) * this.width) * 4
+			const basePos = (i + this.height * this.width) * 4
 			this.raw.data[basePos] = 200
 			this.raw.data[basePos + 1] = 200
 			this.raw.data[basePos + 2] = 200
 			this.raw.data[basePos + 3] = 255
-			const j = Math.floor(this.height * Math.abs(this.simulator.goal[i]) / absMax) || 0
-			const position = (i + (this.height - j - 1) * this.width) * 4
+			const j = Math.floor(this.height * this.simulator.goal[i] / absMax) || 0
+			const position = (i + (this.height - j) * this.width) * 4
 			this.raw.data[position] = 127
 			this.raw.data[position + 1] = 127
 			this.raw.data[position + 2] = 127
