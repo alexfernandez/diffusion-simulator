@@ -115,7 +115,7 @@ class Simulator {
 
 	computeBarrier() {
 		const firstY = this.height / 5
-		const secondY = 3 * this.height / 5
+		const secondY = 4 * this.height / 5
 		console.log(`barriers: ${firstY}, ${secondY}`)
 		for (let i = 0; i < this.width; i++) {
 			for (let j = 0; j < slitDepth; j++) {
