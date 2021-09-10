@@ -7,6 +7,7 @@ const particlesPerSecond = 20
 const slitWidth = 10
 const slitDepth = 10
 const slitSeparation = 80
+const dispersion = Math.PI / 4
 
 
 window.onload = () => {
@@ -139,7 +140,7 @@ class Simulator {
 			return
 		}
 		const angle = Math.PI * Math.random() / 2 - Math.PI / 4
-		const particle = new Particle(this.cx, this.height * 0.18, Math.sin(angle), Math.cos(angle))
+		const particle = new Particle(this.cx, this.height * 0.18, angle)
 		this.particles.push(particle)
 		this.lastCreated = this.time
 	}
@@ -196,17 +197,17 @@ class Simulator {
 	rebound(particle) {
 		particle.rewind()
 		// randomize a bit
-		particle.speedx += (Math.random() - 0.5) / 2
-		// check reverting speedx
-		particle.speedx = -particle.speedx
+		const angle = particle.angle + dispersion * (Math.random() - 0.5)
+		particle.setAngle(angle)
+		// check reverting horizontal speed
+		particle.setAngle(-particle.angle)
 		particle.advance()
 		if (!this.checkBarrier(particle)) {
 			return true
 		}
-		// now check reverting speedy
+		// now check reverting vertical speed
 		particle.rewind()
-		particle.speedx = -particle.speedx
-		particle.speedy = -particle.speedy
+		particle.setAngle(Math.PI + particle.angle)
 		particle.advance()
 		if (!this.checkBarrier(particle)) {
 			return true
@@ -225,14 +226,39 @@ class Simulator {
 		this.raw.data[position + 2] = b
 		this.raw.data[position + 3] = 255
 	}
+
+	play() {
+		this.sound = !this.sound
+	}
+
+	/**
+	 * Adapted from https://codepen.io/noraspice/pen/JpVXVP
+	 */
+	beep() {
+		if (!this.sound) return
+		const oscillator = this.ac.createOscillator()
+		const gain = this.ac.createGain()
+		const now = this.ac.currentTime
+		const rampDown = 0.1
+		oscillator.connect(gain)
+		oscillator.type = 'sine'
+		oscillator.frequency.value = 500
+		gain.gain.setValueAtTime(0.2, now)
+		gain.connect(this.ac.destination)
+		oscillator.start(now)
+		gain.gain.exponentialRampToValueAtTime(0.00001, now + rampDown)
+		oscillator.stop(now + rampDown + .01)
+	}
 }
 
 class Particle {
-	constructor(x, y, speedx, speedy) {
+	constructor(x, y, angle) {
 		this.x = x
 		this.y = y
-		this.speedx = speedx
-		this.speedy = speedy
+		this.angle = angle
+		this.speedx = 0
+		this.speedy = 0
+		this.setAngle(angle)
 	}
 
 	advance() {
@@ -243,6 +269,12 @@ class Particle {
 	rewind() {
 		this.x -= this.speedx
 		this.y -= this.speedy
+	}
+
+	setAngle(angle) {
+		this.angle = angle
+		this.speedx = Math.sin(angle)
+		this.speedy = Math.cos(angle)
 	}
 
 	getX() {
