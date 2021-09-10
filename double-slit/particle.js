@@ -138,7 +138,8 @@ class Simulator {
 		if (this.time - this.lastCreated < 1 / particlesPerSecond) {
 			return
 		}
-		const particle = new Particle(this.cx, this.height * 0.18, Math.random() - 0.5, 1)
+		const angle = Math.PI * Math.random() / 2 - Math.PI / 4
+		const particle = new Particle(this.cx, this.height * 0.18, Math.sin(angle), Math.cos(angle))
 		this.particles.push(particle)
 		this.lastCreated = this.time
 	}
