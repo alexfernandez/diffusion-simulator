@@ -138,7 +138,7 @@ class Simulator {
 		if (this.time - this.lastCreated < 1 / particlesPerSecond) {
 			return
 		}
-		const particle = new Particle(this.cx, this.height / 10, Math.random() - 0.5, 1)
+		const particle = new Particle(this.cx, this.height * 0.18, Math.random() - 0.5, 1)
 		this.particles.push(particle)
 		this.lastCreated = this.time
 	}
@@ -193,8 +193,10 @@ class Simulator {
 	}
 
 	rebound(particle) {
-		// check reverting speedx
 		particle.rewind()
+		// randomize a bit
+		particle.speedx += (Math.random() - 0.5) / 2
+		// check reverting speedx
 		particle.speedx = -particle.speedx
 		particle.advance()
 		if (!this.checkBarrier(particle)) {
