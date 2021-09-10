@@ -164,21 +164,55 @@ class Simulator {
 		}
 		for (let i = 0; i < this.particles.length; i++) {
 			const particle = this.particles[i]
-			if (particle.x < 0 || particle.x >= this.width) {
+			const x = particle.getX()
+			const y = particle.getY()
+			if (x < 0 || x >= this.width || y < 0) {
+				// remove
 				this.particles.splice(i, 1)
 				i -= 1
-			} else if (particle.y > this.readY) {
-				this.goal[particle.getX()] += 1
+			} else if (y > this.readY) {
+				// add to graph and remove
+				this.goal[x] += 1
 				this.particles.splice(i, 1)
 				i -= 1
+			} else if (this.checkBarrier(particle)) {
+				// rebound
+				if (!this.rebound(particle)) {
+					// no valid rebound
+					this.particles.splice(i, 1)
+				}
 			} else {
-				this.setPixel(particle.getX(), particle.getY())
+				// draw
+				this.setPixel(x, y, 0, 50, 0)
 			}
 
 		}
 		this.ctx.putImageData(this.raw, 0, 0);
 		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
 		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', this.width / 3, this.height + fontSize - 1)
+	}
+
+	rebound(particle) {
+		// check reverting speedx
+		particle.rewind()
+		particle.speedx = -particle.speedx
+		particle.advance()
+		if (!this.checkBarrier(particle)) {
+			return true
+		}
+		// now check reverting speedy
+		particle.rewind()
+		particle.speedx = -particle.speedx
+		particle.speedy = -particle.speedy
+		particle.advance()
+		if (!this.checkBarrier(particle)) {
+			return true
+		}
+		return false
+	}
+
+	checkBarrier(particle) {
+		return this.barrier[particle.getX() + particle.getY() * this.width]
 	}
 
 	setPixel(i, j, r, g, b) {
@@ -201,6 +235,11 @@ class Particle {
 	advance() {
 		this.x += this.speedx
 		this.y += this.speedy
+	}
+
+	rewind() {
+		this.x -= this.speedx
+		this.y -= this.speedy
 	}
 
 	getX() {
