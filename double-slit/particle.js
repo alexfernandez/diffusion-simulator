@@ -195,7 +195,8 @@ class Simulator {
 		}
 		this.ctx.putImageData(this.raw, 0, 0);
 		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
-		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', this.width / 3, this.height + fontSize - 1)
+		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', 20, this.height + fontSize - 3)
+		this.ctx.fillText('p = ' + this.particles.length, 130, this.height + fontSize - 3)
 	}
 
 	rebound(particle) {
@@ -325,7 +326,7 @@ class Grapher {
 			this.raw.data[position + 3] = 255
 		}
 		this.ctx.putImageData(this.raw, 0, this.starty);
-		this.ctx.fillText('max: ' + absMax.toFixed(2), this.width / 3, this.starty + this.height + fontSize - 1)
+		this.ctx.fillText('max: ' + absMax.toFixed(2), this.width / 3, this.starty + this.height + fontSize - 3)
 	}
 }
 
