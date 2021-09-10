@@ -27,6 +27,7 @@ window.onload = () => {
 	document.getElementById('run').onclick = () => controller.run()
 	document.getElementById('pause').onclick = () => controller.pause()
 	document.getElementById('reset').onclick = () => controller.reset()
+	document.getElementById('play').onclick = () => simulator.play()
 }
 
 function getParameter(name) {
@@ -94,6 +95,8 @@ class Simulator {
 		this.totalPeriods = 0
 		this.readY = 0
 		this.lastCreated = 0
+		this.sound = false
+		this.ac = new window.AudioContext()
 	}
 
 	reset() {
@@ -176,6 +179,7 @@ class Simulator {
 				// add to graph and remove
 				this.goal[x] += 1
 				this.particles.splice(i, 1)
+				this.beep()
 				i -= 1
 			} else if (this.checkBarrier(particle)) {
 				// rebound
