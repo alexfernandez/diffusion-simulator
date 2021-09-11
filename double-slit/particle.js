@@ -13,8 +13,7 @@ const dispersion = Math.PI / 4
 window.onload = () => {
 	const canvas = document.getElementById('canvas')
 	const ctx = canvas.getContext('2d')
-	ctx.font = '16px sans-serif'
-	ctx.clearRect(0, 0, this.width, this.height)
+	ctx.font = `${fontSize}px sans-serif`
 	const height = canvas.height - fontSize - graphSize - fontSize
 	const simulator = new Simulator(canvas.width, height, ctx)
 	const grapher = new Grapher(ctx, simulator)
@@ -192,17 +191,16 @@ class Simulator {
 	}
 
 	draw() {
-		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
+		this.ctx.clearRect(0, 0, this.width, this.height + fontSize)
 		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', this.width / 2 - 50, this.height + fontSize - 3)
 		if (!getCheckbox('display')) return
+		this.raw.data.fill(255, 0, this.width * this.height * 4)
 		for (let i = 0; i < this.width; i++) {
 			for (let j = 0; j < this.height; j++) {
 				if (this.barrier[i + j * this.width]) {
 					this.setPixel(i, j, 0, 0, 0)
 				} else if (j == this.readY) {
 					this.setPixel(i, j, 200, 200, 200)
-				} else {
-					this.setPixel(i, j, 255, 255, 255)
 				}
 			}
 		}
