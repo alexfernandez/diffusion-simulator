@@ -109,6 +109,7 @@ class Simulator {
 		this.fillGrid(this.grid0, 0)
 		this.fillGrid(this.grid1, 0)
 		this.fillGrid(this.grid2, 0)
+		this.fillGrid(this.barrier, 0)
 		this.time = 0
 		this.speedms = getParameter('speed')
 		this.initialDamping = getParameter('damping')
@@ -168,10 +169,20 @@ class Simulator {
 			if (diff > slitSize / 2) {
 				this.barrier[i + firstY * this.width] = 1
 			}
-			if (diff < slitSeparation / 2 || diff > slitSeparation / 2 + slitSize) {
+			if (this.isSecondBarrier(i)) {
 				this.barrier[i + secondY * this.width] = 1
 			}
 		}
+	}
+
+	isSecondBarrier(x) {
+		const diff = Math.abs(this.cx - x)
+		if (diff < slitSeparation / 2) return true
+		if (diff > slitSeparation / 2 + slitSize) return true
+		console.log(getCheckbox('close1'))
+		if (x < this.cx && getCheckbox('close1')) return true
+		if (x > this.cx && getCheckbox('close2')) return true
+		return false
 	}
 
 	createGrid() {
