@@ -45,6 +45,8 @@ class Controller {
 		this.grapher = grapher
 		this.updater = null
 		this.logger = null
+		this.totalMs = 0
+		this.rounds = 0
 	}
 
 	reset() {
@@ -59,19 +61,34 @@ class Controller {
 		if (!this.simulator.isValid()) {
 			return
 		}
-		let total = 0
-		let rounds = 0
-		this.updater = window.setInterval(() => {
-			const start = Date.now()
-			this.simulator.update()
-			this.grapher.update()
-			const elapsed = Date.now() - start
-			total += elapsed
-			rounds += 1
-		}, dt * 1000)
-		this.logger = window.setInterval(() => {
-			console.log(`Average ms per round: ${Math.round(total / rounds)}`)
-		}, 1000)
+		if (getCheckbox('maxspeed')) {
+			this.updater = true
+			this.updateMaxSpeed()
+		} else {
+			this.updater = window.setInterval(() => this.update(), dt * 1000)
+		}
+		this.logger = window.setInterval(() => this.display(), 1000)
+	}
+
+	updateMaxSpeed() {
+		if (!this.updater) return
+		for (let i = 0; i < 10; i++) {
+			this.update()
+		}
+		setTimeout(() => this.updateMaxSpeed(), 0)
+	}
+
+	update() {
+		const start = Date.now()
+		this.simulator.update()
+		this.grapher.update()
+		const elapsed = Date.now() - start
+		this.totalMs += elapsed
+		this.rounds += 1
+	}
+
+	display() {
+		console.log(`Average ms per round: ${Math.round(this.totalMs / this.rounds)}`)
 	}
 
 	pause() {

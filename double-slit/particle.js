@@ -72,7 +72,6 @@ class Controller {
 		setTimeout(() => this.updateMaxSpeed(), 0)
 	}
 
-
 	update() {
 		const start = Date.now()
 		this.simulator.update()
