@@ -308,14 +308,19 @@ class Grapher {
 		this.height = graphSize
 		this.starty = simulator.height + fontSize
 		this.raw = ctx.getImageData(0, this.starty, this.width, this.starty + this.height)
+		this.lastTotal = 0
 	}
 
 	update() {
-		this.raw.data.fill(255, 0, this.width * this.height * 4)
 		let absMax = 0
+		let total = 0
 		for (let i = 0; i < this.width; i++) {
+			total += this.simulator.goal[i]
 			if (this.simulator.goal[i] > absMax) absMax = this.simulator.goal[i]
 		}
+		if (this.lastTotal == total) return
+		this.lastTotal = total
+		this.raw.data.fill(255, 0, this.width * this.height * 4)
 		for (let i = 0; i < this.width; i++) {
 			const basePos = (i + this.height * this.width) * 4
 			this.raw.data[basePos] = 200
