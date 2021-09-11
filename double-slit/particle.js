@@ -60,8 +60,8 @@ class Controller {
 			this.updateMaxSpeed()
 		} else {
 			this.updater = window.setInterval(() => this.update(), dt * 1000)
-			this.logger = window.setInterval(() => this.display(), 1000)
 		}
+		this.logger = window.setInterval(() => this.display(), 1000)
 	}
 
 	updateMaxSpeed() {
