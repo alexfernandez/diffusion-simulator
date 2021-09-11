@@ -148,25 +148,9 @@ class Simulator {
 
 	advance() {
 		this.time += dt
-		for (const particle of this.particles) {
-			particle.advance()
-		}
-	}
-
-	draw() {
-		for (let i = 0; i < this.width; i++) {
-			for (let j = 0; j < this.height; j++) {
-				if (this.barrier[i + j * this.width]) {
-					this.setPixel(i, j, 0, 0, 0)
-				} else if (j == this.readY) {
-					this.setPixel(i, j, 200, 200, 200)
-				} else {
-					this.setPixel(i, j, 255, 255, 255)
-				}
-			}
-		}
 		for (let i = 0; i < this.particles.length; i++) {
 			const particle = this.particles[i]
+			particle.advance()
 			const x = particle.getX()
 			const y = particle.getY()
 			if (x < 0 || x >= this.width || y < 0) {
@@ -185,16 +169,30 @@ class Simulator {
 					// no valid rebound
 					this.particles.splice(i, 1)
 				}
-			} else {
-				// draw
-				this.setPixel(x, y, 0, 100, 0)
 			}
-
 		}
-		this.ctx.putImageData(this.raw, 0, 0);
+	}
+
+	draw() {
 		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
 		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', 20, this.height + fontSize - 3)
 		this.ctx.fillText('p = ' + this.particles.length, 130, this.height + fontSize - 3)
+		if (!getCheckbox('display')) return
+		for (let i = 0; i < this.width; i++) {
+			for (let j = 0; j < this.height; j++) {
+				if (this.barrier[i + j * this.width]) {
+					this.setPixel(i, j, 0, 0, 0)
+				} else if (j == this.readY) {
+					this.setPixel(i, j, 200, 200, 200)
+				} else {
+					this.setPixel(i, j, 255, 255, 255)
+				}
+			}
+		}
+		for (const particle of this.particles) {
+			this.setPixel(particle.getX(), particle.getY(), 0, 100, 0)
+		}
+		this.ctx.putImageData(this.raw, 0, 0);
 	}
 
 	rebound(particle) {
