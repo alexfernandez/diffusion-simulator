@@ -43,6 +43,8 @@ class Controller {
 		this.grapher = grapher
 		this.updater = null
 		this.logger = null
+		this.totalMs = 0
+		this.rounds = 0
 	}
 
 	reset() {
@@ -54,19 +56,35 @@ class Controller {
 
 	run() {
 		if (this.updater) return
-		let total = 0
-		let rounds = 0
-		this.updater = window.setInterval(() => {
-			const start = Date.now()
-			this.simulator.update()
-			this.grapher.update()
-			const elapsed = Date.now() - start
-			total += elapsed
-			rounds += 1
-		}, dt * 1000)
-		this.logger = window.setInterval(() => {
-			console.log(`Average ms per round: ${Math.round(total / rounds)}`)
-		}, 1000)
+		if (getCheckbox('maxspeed')) {
+			this.updater = true
+			this.updateMaxSpeed()
+		} else {
+			this.updater = window.setInterval(() => this.update(), dt * 1000)
+			this.logger = window.setInterval(() => this.display(), 1000)
+		}
+	}
+
+	updateMaxSpeed() {
+		if (!this.updater) return
+		for (let i = 0; i < 100; i++) {
+			this.update()
+		}
+		setTimeout(() => this.updateMaxSpeed(), 0)
+	}
+
+
+	update() {
+		const start = Date.now()
+		this.simulator.update()
+		this.grapher.update()
+		const elapsed = Date.now() - start
+		this.totalMs += elapsed
+		this.rounds += 1
+	}
+
+	display() {
+		console.log(`Average ms per round: ${Math.round(this.totalMs / this.rounds)}`)
 	}
 
 	pause() {
@@ -175,8 +193,7 @@ class Simulator {
 
 	draw() {
 		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
-		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', 20, this.height + fontSize - 3)
-		this.ctx.fillText('p = ' + this.particles.length, 130, this.height + fontSize - 3)
+		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', this.width / 2 - 50, this.height + fontSize - 3)
 		if (!getCheckbox('display')) return
 		for (let i = 0; i < this.width; i++) {
 			for (let j = 0; j < this.height; j++) {
