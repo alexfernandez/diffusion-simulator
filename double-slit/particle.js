@@ -27,7 +27,6 @@ window.onload = () => {
 	document.getElementById('run').onclick = () => controller.run()
 	document.getElementById('pause').onclick = () => controller.pause()
 	document.getElementById('reset').onclick = () => controller.reset()
-	document.getElementById('play').onclick = () => simulator.play()
 }
 
 function getParameter(name) {
@@ -95,7 +94,6 @@ class Simulator {
 		this.totalPeriods = 0
 		this.readY = 0
 		this.lastCreated = 0
-		this.sound = false
 		this.ac = new window.AudioContext()
 	}
 
@@ -232,16 +230,11 @@ class Simulator {
 		this.raw.data[position + 3] = 255
 	}
 
-	play() {
-		this.sound = !this.sound
-		console.log(`Sound ${this.sound ? 'on' : 'off'}`)
-	}
-
 	/**
 	 * Adapted from https://codepen.io/noraspice/pen/JpVXVP
 	 */
 	beep() {
-		if (!this.sound) return
+		if (!getCheckbox('sound')) return
 		const oscillator = this.ac.createOscillator()
 		const gain = this.ac.createGain()
 		const now = this.ac.currentTime
