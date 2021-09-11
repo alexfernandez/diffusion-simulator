@@ -304,11 +304,6 @@ class Grapher {
 
 	update() {
 		this.raw.data.fill(255, 0, this.width * this.height * 4)
-		/*
-		for (let pos = 0; pos < this.width * this.height * 4; pos++) {
-			this.raw.data[pos] = 255
-		}
-		*/
 		let absMax = 0
 		for (let i = 0; i < this.width; i++) {
 			if (this.simulator.goal[i] > absMax) absMax = this.simulator.goal[i]
