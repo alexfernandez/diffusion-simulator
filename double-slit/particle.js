@@ -189,7 +189,7 @@ class Simulator {
 				}
 			} else {
 				// draw
-				this.setPixel(x, y, 0, 50, 0)
+				this.setPixel(x, y, 0, 100, 0)
 			}
 
 		}
