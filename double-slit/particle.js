@@ -191,7 +191,7 @@ class Simulator {
 	}
 
 	draw() {
-		this.ctx.clearRect(0, 0, this.width, this.height + fontSize)
+		this.ctx.clearRect(0, this.height, this.width, this.height + fontSize)
 		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', this.width / 2 - 50, this.height + fontSize - 3)
 		if (getCheckbox('hide')) return
 		this.raw.data.fill(255, 0, this.width * this.height * 4)
