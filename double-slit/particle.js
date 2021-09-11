@@ -234,6 +234,7 @@ class Simulator {
 
 	play() {
 		this.sound = !this.sound
+		console.log(`Sound ${this.sound ? 'on' : 'off'}`)
 	}
 
 	/**
