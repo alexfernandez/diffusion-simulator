@@ -13,7 +13,7 @@ const slitSeparation = 80
 
 
 window.onload = () => {
-	const canvas = document.getElementById('canvas')
+	const canvas = document.getElementById('wave-canvas')
 	const ctx = canvas.getContext('2d')
 	ctx.font = '16px sans-serif'
 	ctx.clearRect(0, 0, this.width, this.height)

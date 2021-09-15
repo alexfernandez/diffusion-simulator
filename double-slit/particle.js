@@ -11,7 +11,7 @@ const dispersion = Math.PI / 4
 
 
 window.onload = () => {
-	const canvas = document.getElementById('canvas')
+	const canvas = document.getElementById('particle-canvas')
 	const ctx = canvas.getContext('2d')
 	ctx.font = `${fontSize}px sans-serif`
 	const height = canvas.height - fontSize - graphSize - fontSize
