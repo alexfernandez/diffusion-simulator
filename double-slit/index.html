@@ -2,74 +2,16 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title>Double-slit Wave Simulator</title>
-		<script src="wave.js"></script>
-		<style type="text/css">
-#pic {
-	display: inline-block;
-}
-canvas {
-	border: solid black 1px;
-}
-#form {
-	display: inline-block;
-	vertical-align: top;
-	margin: 20px;
-}
-		</style>
+		<title>Double-slit Simulations</title>
 	</head>
 	<body>
-		<h1>𝌂 Double-slit 🌊 Wave Simulator</h1>
-		<div id="pic">
-			<canvas id="wave-canvas" width="200" height="532"></canvas>
-			<br>
-			<button id="run" type="button">run</button>
-			<button id="pause" type="button">pause</button>
-			<button id="reset" type="button">reset</button>
-		</div>
-		<div id="form">
-			<h3>Tunable Parameters</h3>
-			<form id="params">
-				<label for="speed">Speed (m/s)</label>
-				<input type="number" id="speed" value="2">
-				<br>
-				<label for="damping">Damping (0 - 1)</label>
-				<input type="number" id="damping" value="0">
-				<br>
-				<label for="periods">Total periods</label>
-				<input type="number" id="periods" value="0">
-				<br>
-				<label for="close1">Close slit #1</label>
-				<input type="checkbox" id="close1">
-				<br>
-				<label for="close2">Close slit #2</label>
-				<input type="checkbox" id="close2">
-				<br>
-				<label for="maxspeed">Max speed</label>
-				<input type="checkbox" id="maxspeed">
-				<br>
-				<label for="autorun">Auto-run</label>
-				<input type="checkbox" id="autorun" checked="true">
-			</form>
-		</div>
-		<h3>Technical Details</h3>
+		<h1>𝌂 Double-slit Simulations</h1>
 		<p>
-		Simulation based on the 2D wave equation.
-		Note that the
-		<a href="https://en.wikipedia.org/wiki/Wave_equation">wave equation</a>
-		applies equally to fluids (Navier-Stokes), sound and light propagation,
-		and to quantum mechanics.
-		</p>
-		<p>
-		Bottom graph is a projection of the accumulated square of the amplitude for the waves that reach the bottom line,
-		which should approximate the energy density for a wave
-		or the probability of finding a particle for the Schrödinger equation.
-		</p>
-		<p>
-		An offscreen buffer has been added to "taper off" any reflections on the walls,
-		which sometimes leads to ghost echoes.
-		To my surprise, there appear to be no easy alternatives that avoid reflections while only modifying countour conditions
-		(i.e. those pesky pixels right near the border).
+		Please find the
+		<a href="wave.html">wave simulator</a>
+		and the
+		<a href="particle.html">particle simulator</a>
+		in this directory.
 		</p>
 		<h3>References</h3>
 		<ul>
@@ -79,16 +21,6 @@ canvas {
 		See
 		<a href="/2021/understanding-quantum-mechanics">Understanding Quantum Mechanics</a>.
 				-->
-			</li>
-			<li>
-				Equations taken from
-				<a href="https://www.slideshare.net/AmrMousa12/2-dimensional-wave-equation-analytical-and-numerical-solution">
-					Amr Mousa: 2 Dimensional Wave Equation Analytical and Numerical Solution
-				</a>.
-			</li>
-			<li>
-				There are more precise simulations online for the Schrödinger equation,
-				such as <a href="https://github.com/artmenlope/double-slit-2d-schrodinger">this great one from Arturo Mena</a>.
 			</li>
 			<li>
 				Don't miss
