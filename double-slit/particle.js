@@ -19,13 +19,13 @@ window.onload = () => {
 	const grapher = new Grapher(ctx, simulator)
 	const controller = new Controller(simulator, grapher)
 	controller.reset()
-	if (getCheckbox('autorun')) {
+	if (getCheckbox('particle-autorun')) {
 		console.log('running')
 		controller.run()
 	}
-	document.getElementById('run').onclick = () => controller.run()
-	document.getElementById('pause').onclick = () => controller.pause()
-	document.getElementById('reset').onclick = () => controller.reset()
+	document.getElementById('particle-run').onclick = () => controller.run()
+	document.getElementById('particle-pause').onclick = () => controller.pause()
+	document.getElementById('particle-reset').onclick = () => controller.reset()
 }
 
 function getParameter(name) {
@@ -59,7 +59,7 @@ class Controller {
 
 	run() {
 		if (this.updater) return
-		if (getCheckbox('maxspeed')) {
+		if (getCheckbox('particle-maxspeed')) {
 			this.updater = true
 			this.updateMaxSpeed()
 		} else {
@@ -122,7 +122,7 @@ class Simulator {
 			this.goal[i] = 0
 		}
 		this.time = 0
-		this.speedms = getParameter('speed')
+		this.speedms = getParameter('particle-speed')
 		this.computeBarrier()
 		this.readY = this.height - 1
 		console.log(`graphing: ${this.readY}`)
@@ -196,7 +196,7 @@ class Simulator {
 	draw() {
 		this.ctx.clearRect(0, this.height, this.width, fontSize)
 		this.ctx.fillText('t = ' + this.time.toFixed(1) + ' s', this.width / 2 - 50, this.height + fontSize - 3)
-		if (getCheckbox('hide')) return
+		if (getCheckbox('particle-hide')) return
 		this.raw.data.fill(255, 0, this.width * this.height * 4)
 		for (let i = 0; i < this.width; i++) {
 			for (let j = 0; j < this.height; j++) {
@@ -250,7 +250,7 @@ class Simulator {
 	 * Adapted from https://codepen.io/noraspice/pen/JpVXVP
 	 */
 	beep() {
-		if (!getCheckbox('sound')) return
+		if (!getCheckbox('particle-sound')) return
 		const oscillator = this.ac.createOscillator()
 		const gain = this.ac.createGain()
 		const now = this.ac.currentTime

@@ -22,13 +22,13 @@ window.onload = () => {
 	const grapher = new Grapher(ctx, simulator)
 	const controller = new Controller(simulator, grapher)
 	controller.reset()
-	if (getCheckbox('autorun')) {
+	if (getCheckbox('wave-autorun')) {
 		console.log('running')
 		controller.run()
 	}
-	document.getElementById('run').onclick = () => controller.run()
-	document.getElementById('pause').onclick = () => controller.pause()
-	document.getElementById('reset').onclick = () => controller.reset()
+	document.getElementById('wave-run').onclick = () => controller.run()
+	document.getElementById('wave-pause').onclick = () => controller.pause()
+	document.getElementById('wave-reset').onclick = () => controller.reset()
 }
 
 function getParameter(name) {
@@ -65,7 +65,7 @@ class Controller {
 		if (!this.simulator.isValid()) {
 			return
 		}
-		if (getCheckbox('maxspeed')) {
+		if (getCheckbox('wave-maxspeed')) {
 			this.updater = true
 			this.updateMaxSpeed()
 		} else {
@@ -132,9 +132,9 @@ class Simulator {
 		this.fillGrid(this.grid2, 0)
 		this.fillGrid(this.barrier, 0)
 		this.time = 0
-		this.speedms = getParameter('speed')
-		this.initialDamping = getParameter('damping')
-		this.totalPeriods = getParameter('periods')
+		this.speedms = getParameter('wave-speed')
+		this.initialDamping = getParameter('wave-damping')
+		this.totalPeriods = getParameter('wave-periods')
 		this.propagation = this.computePropagation()
 		console.log('propagation ', this.propagation)
 		this.computeDampingField()
@@ -200,8 +200,8 @@ class Simulator {
 		const diff = Math.abs(this.cx - x)
 		if (diff < slitSeparation / 2) return true
 		if (diff > slitSeparation / 2 + slitSize) return true
-		if (x < this.cx && getCheckbox('close1')) return true
-		if (x > this.cx && getCheckbox('close2')) return true
+		if (x < this.cx && getCheckbox('wave-close1')) return true
+		if (x > this.cx && getCheckbox('wave-close2')) return true
 		return false
 	}
 
