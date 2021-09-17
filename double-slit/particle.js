@@ -29,11 +29,15 @@ window.onload = () => {
 }
 
 function getParameter(name) {
-	return parseFloat(document.getElementById(name).value)
+	return parseFloat(getElement(name).value) || 0
 }
 
 function getCheckbox(name) {
-	return document.getElementById(name).checked
+	return getElement(name).checked || false
+}
+
+function getElement(name) {
+	return document.getElementById(name) || {}
 }
 
 class Controller {
