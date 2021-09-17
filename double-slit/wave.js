@@ -196,7 +196,6 @@ class Simulator {
 		const diff = Math.abs(this.cx - x)
 		if (diff < slitSeparation / 2) return true
 		if (diff > slitSeparation / 2 + slitSize) return true
-		console.log(getCheckbox('close1'))
 		if (x < this.cx && getCheckbox('close1')) return true
 		if (x > this.cx && getCheckbox('close2')) return true
 		return false
