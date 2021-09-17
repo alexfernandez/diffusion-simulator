@@ -22,3 +22,11 @@ rules:
   linebreak-style:
   - error
   - unix
+globals:
+  fontSize: true
+  graphSize: true
+  slitWidth: true
+  slitSeparation: true
+  Controller: true
+  getCheckbox: true
+  getParameter: true

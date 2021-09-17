@@ -1,26 +1,27 @@
 'use strict'
 
-const sizem = 50
-const periodSeconds = 1
-const dt = 0.02
-const fontSize = 16
-const graphSize = 50
-const offscreenDamping = 0.99
-const offscreenBuffer = 200
-const amplitude = 10
-const slitSize = 10
-const slitSeparation = 80
 
+class WaveParameters {
+	constructor() {
+		this.sizem = 50
+		this.periodSeconds = 1
+		this.dt = 0.02
+		this.offscreenDamping = 0.99
+		this.offscreenBuffer = 200
+		this.amplitude = 10
+		this.maxSpeedRuns = 10
+	}
+}
 
 window.onload = () => {
 	const canvas = document.getElementById('wave-canvas')
 	const ctx = canvas.getContext('2d')
 	ctx.font = '16px sans-serif'
-	ctx.clearRect(0, 0, this.width, this.height)
 	const height = canvas.height - fontSize - graphSize - fontSize
-	const simulator = new Simulator(canvas.width, height, ctx)
-	const grapher = new Grapher(ctx, simulator)
-	const controller = new Controller(simulator, grapher)
+	const parameters = new WaveParameters()
+	const simulator = new WaveSimulator(canvas.width, height, ctx, parameters)
+	const grapher = new WaveGrapher(ctx, simulator, parameters)
+	const controller = new Controller(simulator, grapher, parameters)
 	controller.reset()
 	if (getCheckbox('wave-autorun')) {
 		console.log('running')
@@ -31,85 +32,13 @@ window.onload = () => {
 	document.getElementById('wave-reset').onclick = () => controller.reset()
 }
 
-function getParameter(name) {
-	return parseFloat(getElement(name).value) || 0
-}
-
-function getCheckbox(name) {
-	return getElement(name).checked || false
-}
-
-function getElement(name) {
-	return document.getElementById(name) || {}
-}
-
-class Controller {
-	constructor(simulator, grapher) {
-		this.simulator = simulator
-		this.grapher = grapher
-		this.updater = null
-		this.logger = null
-		this.totalMs = 0
-		this.rounds = 0
-	}
-
-	reset() {
-		this.pause()
-		console.log('resetting')
-		this.simulator.reset()
-		console.log('reset')
-	}
-
-	run() {
-		if (this.updater) return
-		if (!this.simulator.isValid()) {
-			return
-		}
-		if (getCheckbox('wave-maxspeed')) {
-			this.updater = true
-			this.updateMaxSpeed()
-		} else {
-			this.updater = window.setInterval(() => this.update(), dt * 1000)
-		}
-		this.logger = window.setInterval(() => this.display(), 1000)
-	}
-
-	updateMaxSpeed() {
-		if (!this.updater) return
-		for (let i = 0; i < 10; i++) {
-			this.update()
-		}
-		setTimeout(() => this.updateMaxSpeed(), 0)
-	}
-
-	update() {
-		const start = Date.now()
-		this.simulator.update()
-		this.grapher.update()
-		const elapsed = Date.now() - start
-		this.totalMs += elapsed
-		this.rounds += 1
-	}
-
-	display() {
-		console.log(`Average ms per round: ${Math.round(this.totalMs / this.rounds)}`)
-	}
-
-	pause() {
-		if (!this.updater) return
-		window.clearInterval(this.updater)
-		window.clearInterval(this.logger)
-		this.updater = null
-		this.logger = null
-	}
-}
-
-class Simulator {
-	constructor(width, height, ctx) {
+class WaveSimulator {
+	constructor(width, height, ctx, parameters) {
 		this.screenWidth = width
 		this.screenHeight = height
-		this.width = this.screenWidth + 2 * offscreenBuffer
-		this.height = this.screenHeight + 2 * offscreenBuffer
+		this.parameters = parameters
+		this.width = this.screenWidth + 2 * this.parameters.offscreenBuffer
+		this.height = this.screenHeight + 2 * this.parameters.offscreenBuffer
 		this.cx = Math.round(this.width / 2)
 		this.cy = Math.round(this.height / 2)
 		this.grid0 = this.createGrid()
@@ -139,7 +68,7 @@ class Simulator {
 		console.log('propagation ', this.propagation)
 		this.computeDampingField()
 		this.computeBarrier()
-		this.readY = offscreenBuffer + this.screenHeight - 1
+		this.readY = this.parameters.offscreenBuffer + this.screenHeight - 1
 		console.log(`graphing: ${this.readY}`)
 		this.draw()
 	}
@@ -159,17 +88,17 @@ class Simulator {
 	}
 
 	computePropagation() {
-		const dx = sizem / this.width
-		const interval = dt * this.speedms / dx
+		const dx = this.parameters.sizem / this.width
+		const interval = this.parameters.dt * this.speedms / dx
 		return interval * interval
 	}
 
 	computeDampingField() {
 		this.fillGrid(this.damping, this.initialDamping)
 		let transparency = 1
-		for (let s = 0; s < offscreenBuffer; s++) {
-			const d = offscreenBuffer - s
-			transparency *= offscreenDamping
+		for (let s = 0; s < this.parameters.offscreenBuffer; s++) {
+			const d = this.parameters.offscreenBuffer - s
+			transparency *= this.parameters.offscreenDamping
 			for (let j = d; j < this.height - d; j++) {
 				this.damping[d + j * this.width] = 1 - transparency
 				this.damping[this.width - d + j * this.width] = 1 - transparency
@@ -182,12 +111,12 @@ class Simulator {
 	}
 
 	computeBarrier() {
-		const firstY = offscreenBuffer + this.screenHeight / 5
-		const secondY = offscreenBuffer + 3 * this.screenHeight / 5
+		const firstY = this.parameters.offscreenBuffer + this.screenHeight / 5
+		const secondY = this.parameters.offscreenBuffer + 3 * this.screenHeight / 5
 		console.log(`barriers: ${firstY}, ${secondY}`)
 		for (let i = 0; i < this.width; i++) {
 			const diff = Math.abs(this.cx - i)
-			if (diff > slitSize / 2) {
+			if (diff > slitWidth / 2) {
 				this.barrier[i + firstY * this.width] = 1
 			}
 			if (this.isSecondBarrier(i)) {
@@ -199,7 +128,7 @@ class Simulator {
 	isSecondBarrier(x) {
 		const diff = Math.abs(this.cx - x)
 		if (diff < slitSeparation / 2) return true
-		if (diff > slitSeparation / 2 + slitSize) return true
+		if (diff > slitSeparation / 2 + slitWidth) return true
 		if (x < this.cx && getCheckbox('wave-close1')) return true
 		if (x > this.cx && getCheckbox('wave-close2')) return true
 		return false
@@ -218,15 +147,15 @@ class Simulator {
 	}
 
 	advance() {
-		this.time += dt
+		this.time += this.parameters.dt
 		for (let i = 1; i < this.width - 1; i++) {
 			for (let j = 1; j < this.height - 1; j++) {
 				this.grid2[i + j * this.width] = this.computeNext(i, j)
 			}
 		}
-		if (!this.totalPeriods || this.time < periodSeconds * this.totalPeriods) {
-			const j = offscreenBuffer + this.screenHeight / 10
-			this.grid2[this.cx + j * this.width] = amplitude * Math.sin(2 * Math.PI * this.time / periodSeconds)
+		if (!this.totalPeriods || this.time < this.parameters.periodSeconds * this.totalPeriods) {
+			const j = this.parameters.offscreenBuffer + this.screenHeight / 10
+			this.grid2[this.cx + j * this.width] = this.parameters.amplitude * Math.sin(2 * Math.PI * this.time / this.parameters.periodSeconds)
 		}
 	}
 
@@ -237,7 +166,7 @@ class Simulator {
 		}
 		const previous = this.grid1[index]
 		const damping = this.damping[index]
-		const damped = (1 - damping * dt) * (previous - this.grid0[index])
+		const damped = (1 - damping * this.parameters.dt) * (previous - this.grid0[index])
 		const neighbors = this.grid1[index + 1] + this.grid1[index - 1] + this.grid1[index + this.width] + this.grid1[index - this.width]
 		const influence = this.propagation * (neighbors - 4 * previous)
 		return previous + damped + influence
@@ -263,7 +192,7 @@ class Simulator {
 	}
 
 	setPixel(i, j) {
-		const index = i + offscreenBuffer + (j + offscreenBuffer) * this.width
+		const index = i + this.parameters.offscreenBuffer + (j + this.parameters.offscreenBuffer) * this.width
 		const value = this.grid2[index]
 		const position = (i + j * this.width) * 4
 		if (this.barrier[index]) {
@@ -287,7 +216,7 @@ class Simulator {
 			this.raw.data[position + 1] = 255
 			this.raw.data[position + 2] = 255 * (1 + value)
 		}
-		if (j == this.readY - offscreenBuffer) {
+		if (j == this.readY - this.parameters.offscreenBuffer) {
 			this.raw.data[position] = Math.min(this.raw.data[position], 200)
 			this.raw.data[position + 1] = Math.min(this.raw.data[position + 1], 200)
 			this.raw.data[position + 2] = Math.min(this.raw.data[position + 2], 200)
@@ -296,10 +225,11 @@ class Simulator {
 	}
 }
 
-class Grapher {
-	constructor(ctx, simulator) {
+class WaveGrapher {
+	constructor(ctx, simulator, parameters) {
 		this.ctx = ctx
 		this.simulator = simulator
+		this.parameters = parameters
 		this.width = simulator.screenWidth
 		this.height = graphSize
 		this.starty = simulator.screenHeight + fontSize
@@ -316,7 +246,7 @@ class Grapher {
 		}
 		let absMax = 0
 		for (let i = 0; i < this.width; i++) {
-			const index = i + offscreenBuffer + this.simulator.readY * this.simulator.width
+			const index = i + this.parameters.offscreenBuffer + this.simulator.readY * this.simulator.width
 			const value = this.simulator.grid2[index]
 			this.data[i] += value * value
 			if (this.data[i] > absMax) absMax = this.data[i]

@@ -1,23 +1,24 @@
 'use strict'
 
-const dt = 0.005
-const fontSize = 16
-const graphSize = 50
-const particlesPerSecond = 20
-const slitWidth = 10
-const slitDepth = 10
-const slitSeparation = 80
-const dispersion = Math.PI / 4
 
+class ParticleParameters {
+	constructor() {
+		this.dt = 0.005
+		this.particlesPerSecond = 20
+		this.slitDepth = 10
+		this.dispersion = Math.PI / 4
+	}
+}
 
 window.onload = () => {
 	const canvas = document.getElementById('particle-canvas')
 	const ctx = canvas.getContext('2d')
 	ctx.font = `${fontSize}px sans-serif`
 	const height = canvas.height - fontSize - graphSize - fontSize
-	const simulator = new Simulator(canvas.width, height, ctx)
-	const grapher = new Grapher(ctx, simulator)
-	const controller = new Controller(simulator, grapher)
+	const parameters = new ParticleParameters()
+	const simulator = new ParticleSimulator(canvas.width, height, ctx, parameters)
+	const grapher = new ParticleGrapher(ctx, simulator)
+	const controller = new Controller(simulator, grapher, parameters)
 	controller.reset()
 	if (getCheckbox('particle-autorun')) {
 		console.log('running')
@@ -28,80 +29,11 @@ window.onload = () => {
 	document.getElementById('particle-reset').onclick = () => controller.reset()
 }
 
-function getParameter(name) {
-	return parseFloat(getElement(name).value) || 0
-}
-
-function getCheckbox(name) {
-	return getElement(name).checked || false
-}
-
-function getElement(name) {
-	return document.getElementById(name) || {}
-}
-
-class Controller {
-	constructor(simulator, grapher) {
-		this.simulator = simulator
-		this.grapher = grapher
-		this.updater = null
-		this.logger = null
-		this.totalMs = 0
-		this.rounds = 0
-	}
-
-	reset() {
-		this.pause()
-		console.log('resetting')
-		this.simulator.reset()
-		console.log('reset')
-	}
-
-	run() {
-		if (this.updater) return
-		if (getCheckbox('particle-maxspeed')) {
-			this.updater = true
-			this.updateMaxSpeed()
-		} else {
-			this.updater = window.setInterval(() => this.update(), dt * 1000)
-		}
-		this.logger = window.setInterval(() => this.display(), 1000)
-	}
-
-	updateMaxSpeed() {
-		if (!this.updater) return
-		for (let i = 0; i < 100; i++) {
-			this.update()
-		}
-		setTimeout(() => this.updateMaxSpeed(), 0)
-	}
-
-	update() {
-		const start = Date.now()
-		this.simulator.update()
-		this.grapher.update()
-		const elapsed = Date.now() - start
-		this.totalMs += elapsed
-		this.rounds += 1
-	}
-
-	display() {
-		console.log(`Average ms per round: ${Math.round(this.totalMs / this.rounds)}`)
-	}
-
-	pause() {
-		if (!this.updater) return
-		window.clearInterval(this.updater)
-		window.clearInterval(this.logger)
-		this.updater = null
-		this.logger = null
-	}
-}
-
-class Simulator {
-	constructor(width, height, ctx) {
+class ParticleSimulator {
+	constructor(width, height, ctx, parameters) {
 		this.width = width
 		this.height = height
+		this.parameters = parameters
 		this.cx = Math.round(this.width / 2)
 		this.cy = Math.round(this.height / 2)
 		this.particles = []
@@ -115,6 +47,10 @@ class Simulator {
 		this.readY = 0
 		this.lastCreated = 0
 		this.ac = new window.AudioContext()
+	}
+
+	isValid() {
+		return true
 	}
 
 	reset() {
@@ -140,7 +76,7 @@ class Simulator {
 		const secondY = 4 * this.height / 5
 		console.log(`barriers: ${firstY}, ${secondY}`)
 		for (let i = 0; i < this.width; i++) {
-			for (let j = 0; j < slitDepth; j++) {
+			for (let j = 0; j < this.parameters.slitDepth; j++) {
 				const diff = Math.abs(this.cx - i)
 				if (diff > slitWidth / 2) {
 					this.barrier[i + (firstY + j) * this.width] = 1
@@ -157,7 +93,7 @@ class Simulator {
 	}
 
 	addParticles() {
-		if (this.time - this.lastCreated < 1 / particlesPerSecond) {
+		if (this.time - this.lastCreated < 1 / this.parameters.particlesPerSecond) {
 			return
 		}
 		const angle = Math.PI * Math.random() / 2 - Math.PI / 4
@@ -167,7 +103,7 @@ class Simulator {
 	}
 
 	advance() {
-		this.time += dt
+		this.time += this.parameters.dt
 		for (let i = 0; i < this.particles.length; i++) {
 			const particle = this.particles[i]
 			particle.advance()
@@ -216,7 +152,7 @@ class Simulator {
 	rebound(particle) {
 		particle.rewind()
 		// randomize a bit
-		const angle = particle.angle + dispersion * (Math.random() - 0.5)
+		const angle = particle.angle + this.parameters.dispersion * (Math.random() - 0.5)
 		particle.setAngle(angle)
 		// check reverting horizontal speed
 		particle.setAngle(-particle.angle)
@@ -301,7 +237,7 @@ class Particle {
 	}
 }
 
-class Grapher {
+class ParticleGrapher {
 	constructor(ctx, simulator) {
 		this.ctx = ctx
 		this.simulator = simulator
