@@ -1,7 +1,7 @@
 'use strict'
 
 const fontSize = 16
-const graphSize = 16
+const graphSize = 50
 const slitWidth = 10
 const slitSeparation = 80
 
