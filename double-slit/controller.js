@@ -33,6 +33,7 @@ class Controller {
 		this.pause()
 		console.log('resetting')
 		this.simulator.reset()
+		this.grapher.reset()
 		console.log('reset')
 	}
 

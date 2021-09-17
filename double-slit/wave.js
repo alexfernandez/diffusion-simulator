@@ -235,6 +235,10 @@ class WaveGrapher {
 		this.starty = simulator.screenHeight + fontSize
 		this.raw = ctx.getImageData(0, this.starty, this.width, this.starty + this.height)
 		this.data = []
+		this.reset()
+	}
+
+	reset() {
 		for (let i = 0; i < this.width; i++) {
 			this.data[i] = 0
 		}

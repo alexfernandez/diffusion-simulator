@@ -248,6 +248,9 @@ class ParticleGrapher {
 		this.lastTotal = -1
 	}
 
+	reset() {
+	}
+
 	update() {
 		let absMax = 0
 		let total = 0
