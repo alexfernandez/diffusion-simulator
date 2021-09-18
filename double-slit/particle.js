@@ -10,7 +10,7 @@ class ParticleParameters {
 	}
 }
 
-window.onload = () => {
+startups.push(() => {
 	const canvas = document.getElementById('particle-canvas')
 	const ctx = canvas.getContext('2d')
 	ctx.font = `${fontSize}px sans-serif`
@@ -27,7 +27,7 @@ window.onload = () => {
 	document.getElementById('particle-run').onclick = () => controller.run()
 	document.getElementById('particle-pause').onclick = () => controller.pause()
 	document.getElementById('particle-reset').onclick = () => controller.reset()
-}
+})
 
 class ParticleSimulator {
 	constructor(width, height, ctx, parameters) {

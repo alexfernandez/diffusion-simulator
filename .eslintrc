@@ -23,6 +23,7 @@ rules:
   - error
   - unix
 globals:
+  startups: true
   fontSize: true
   graphSize: true
   slitWidth: true

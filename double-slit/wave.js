@@ -13,7 +13,7 @@ class WaveParameters {
 	}
 }
 
-window.onload = () => {
+startups.push(() => {
 	const canvas = document.getElementById('wave-canvas')
 	const ctx = canvas.getContext('2d')
 	ctx.font = '16px sans-serif'
@@ -30,7 +30,7 @@ window.onload = () => {
 	document.getElementById('wave-run').onclick = () => controller.run()
 	document.getElementById('wave-pause').onclick = () => controller.pause()
 	document.getElementById('wave-reset').onclick = () => controller.reset()
-}
+})
 
 class WaveSimulator {
 	constructor(width, height, ctx, parameters) {

@@ -4,7 +4,14 @@ const fontSize = 16
 const graphSize = 50
 const slitWidth = 10
 const slitSeparation = 80
+const startups = []
 
+
+window.onload = () => {
+	for (const startup of startups) {
+		startup()
+	}
+}
 
 function getParameter(name) {
 	return parseFloat(getElement(name).value) || 0
