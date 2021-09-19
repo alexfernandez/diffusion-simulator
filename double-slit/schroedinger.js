@@ -139,14 +139,14 @@ class SchroedingerSimulator {
 		this.time += this.parameters.dt
 		for (let i = 1; i < this.width - 1; i++) {
 			for (let j = 1; j < this.height - 1; j++) {
-				this.r1[i + j * this.width] = this.computeNextR(i, j)
-				this.i15[i + j * this.width] = this.computeNextI(i, j)
+				const index = i + j * this.width
+				this.r1[index] = this.computeNextR(index)
+				this.i15[index] = this.computeNextI(index)
 			}
 		}
 	}
 
-	computeNextR(i, j) {
-		const index = i + j * this.width
+	computeNextR(index) {
 		const previous = this.i05[index]
 		const neighbors = this.i05[index + 1] + this.i05[index - 1] + this.i05[index + this.width] + this.i05[index - this.width]
 		const constant = -1 / (2 * this.mass) / (this.parameters.dx * this.parameters.dx)
@@ -154,8 +154,7 @@ class SchroedingerSimulator {
 		return this.r0[index] + this.parameters.dt * hi
 	}
 
-	computeNextI(i, j) {
-		const index = i + j * this.width
+	computeNextI(index) {
 		const previous = this.r1[index]
 		const neighbors = this.r1[index + 1] + this.r1[index - 1] + this.r1[index + this.width] + this.r1[index - this.width]
 		const constant = -1 / (2 * this.mass) / (this.parameters.dx * this.parameters.dx)
