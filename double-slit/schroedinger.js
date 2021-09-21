@@ -184,7 +184,7 @@ class SchroedingerSimulator {
 
 	setPixel(i, j) {
 		const index = i + this.parameters.offscreenBuffer + (j + this.parameters.offscreenBuffer) * this.width
-		const value = this.getProb(index)
+		const value = this.getProb(index) * 10
 		const position = (i + j * this.width) * 4
 		if (this.potential[index]) {
 			this.raw.data[position] = 0
@@ -217,6 +217,18 @@ class SchroedingerSimulator {
 
 	getProb(index) {
 		return this.r1[index] * this.r1[index] + this.i05[index] * this.i15[index]
+	}
+
+	log() {
+		let total = 0
+		for (let i = 1; i < this.width - 1; i++) {
+			for (let j = 1; j < this.height - 1; j++) {
+				const index = i + j * this.width
+				const prob = this.getProb(index)
+				total += prob
+			}
+		}
+		console.log(`Total probability: ${total}`)
 	}
 }
 

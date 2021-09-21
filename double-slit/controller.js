@@ -55,7 +55,7 @@ class Controller {
 		} else {
 			this.updater = window.setInterval(() => this.update(), this.parameters.dt * 1000)
 		}
-		this.logger = window.setInterval(() => this.display(), 1000)
+		this.logger = window.setInterval(() => this.log(), 1000)
 	}
 
 	updateMaxSpeed() {
@@ -75,8 +75,10 @@ class Controller {
 		this.rounds += 1
 	}
 
-	display() {
+	log() {
 		console.log(`Average ms per round: ${Math.round(this.totalMs / this.rounds)}`)
+		if (this.simulator.log) this.simulator.log()
+		if (this.grapher.log) this.grapher.log()
 	}
 
 	pause() {
