@@ -17,6 +17,9 @@ let accel = [0, 0, 0]
 const g = 9.8
 let gravity = [0, 0, -g]
 let propulsion
+const maxThrustPerMotor = 0.15
+const minPwm = 128
+const maxPwm = 255
 
 // drag
 const cd = 0.4
@@ -194,7 +197,7 @@ function line2d(point1, point2, color) {
 }
 
 class Propulsion {
-	intervals = [[5, 0.505], [2, 0.48], [5, 0.51], [1, 0]]
+	intervals = [[5, 191], [2, 186], [5, 192], [1, 128]]
 	currentInterval = 0
 	pending = 0
 	constructor() {
@@ -211,11 +214,13 @@ class Propulsion {
 	}
 
 	computeAccel(dt) {
-		const value = this.computeValue(dt)
-		return value * 2 * g
+		const pwm = this.computePwm(dt)
+		const value = (pwm - minPwm) / (maxPwm - minPwm)
+		const thrust = maxThrustPerMotor * value
+		return 4 * thrust / mass
 	}
 
-	computeValue(dt) {
+	computePwm(dt) {
 		this.pending -= dt
 		if (this.pending < 0) {
 			this.currentInterval += 1
