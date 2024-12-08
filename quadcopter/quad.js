@@ -131,6 +131,7 @@ function draw() {
 	drawDrone()
 	ctx.fillText(`t = ${time.toFixed(1)} s`, 100, height + fontSize - 1)
 	ctx.fillText(`pos = ${display(pos)}`, 300, height + fontSize - 1)
+	ctx.fillText(`acc = ${display(accel)}`, 500, height + fontSize - 1)
 }
 
 function drawDrone() {
