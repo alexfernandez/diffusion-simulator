@@ -21,6 +21,7 @@ let propulsion
 const cd = 0.4
 const density = 1.2
 const area = size * size
+const mass = 0.03
 
 // parameters
 const fontSize = 16
@@ -120,7 +121,7 @@ function computeAccel() {
 }
 
 function computeDrag() {
-	const factor = 0.5 * density * cd * area
+	const factor = 0.5 * density * cd * area / mass
 	return scale(speed, factor)
 }
 
