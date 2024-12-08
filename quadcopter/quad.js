@@ -5,7 +5,7 @@ const dt = 0.1
 let time = 0
 
 // drone characterization
-let size = 75
+let size = 0.075
 let pitch = 0
 let yaw = 0
 let roll = 0
@@ -14,11 +14,12 @@ let roll = 0
 let pos = [0, 0, 0]
 let speed = [0, 0, 0]
 let accel = [0, 0, 0]
-let gravity = [0, 0, -1]
+let gravity = [0, 0, -9.8]
 
 // parameters
 const fontSize = 16
-const camera = [0, 0, 4]
+const cameraPos = [0, -1, -0.5]
+const cameraScale = 200
 let ctx, updater, raw
 let width, height
 
@@ -81,24 +82,32 @@ function getCheckbox(name) {
 }
 
 function update() {
-	time += dt
+	updatePhysics()
+	draw()
+}
+
+function updatePhysics() {
+	const newTime = time + dt
 	const newAccel = sum(accel, gravity)
-	console.log('speed', speed)
+	console.log(`speed: ${speed}`)
 	const newSpeed = sum(scale(newAccel, dt), speed)
 	const newPos = sum(scale(newSpeed, dt), pos)
+	if (newPos[2] < 0) {
+		newPos[2] = 0
+		newSpeed[2] = 0
+	}
 	console.log('accel', newAccel, scale(newAccel, dt), 'speed', newSpeed, newPos)
+	time = newTime
 	speed = newSpeed
 	pos = newPos
-	draw()
 }
 
 function draw() {
 	ctx.clearRect(0, height, width, height + fontSize)
 	//ctx.putImageData(raw, 0, 0);
 	drawDrone()
-	ctx.fillText('t = ' + time.toFixed(1) + ' s', 100, height + fontSize - 1)
-	//ctx.fillText('count = ' + count(255).toFixed(0), 300, height + fontSize - 1)
-	//ctx.fillText('visited = ' + count(50).toFixed(0), 500, height + fontSize - 1)
+	ctx.fillText(`t = ${time.toFixed(1)} s`, 100, height + fontSize - 1)
+	ctx.fillText(`pos = ${display(pos)}`, 300, height + fontSize - 1)
 }
 
 function drawDrone() {
@@ -117,7 +126,6 @@ function computeDroneCoords() {
 }
 
 function sum(vector1, vector2) {
-	console.log(`Adding ${vector1} and ${vector2}`)
 	if (vector1[0] === undefined) {
 		throw Error(`Bad vector1 for sum: ${vector1}`)
 	}
@@ -131,6 +139,10 @@ function scale(vector, factor) {
 	return [factor * vector[0], factor * vector[1], factor * vector[2]]
 }
 
+function display(vector) {
+	return `[${vector[0].toFixed(1)}, ${vector[1].toFixed(1)}, ${vector[2].toFixed(1)}]`
+}
+
 function line3d(pos1, pos2) {
 	const point1 = convert3d(pos1)
 	const point2 = convert3d(pos2)
@@ -139,8 +151,8 @@ function line3d(pos1, pos2) {
 }
 
 function convert3d(pos) {
-	const x = (pos[0] + camera[0]) / (pos[2] + camera[2])
-	const y = (pos[1] + camera[1]) / (pos[2] + camera[2])
+	const x = cameraScale * (pos[0] - cameraPos[0]) / (pos[1] - cameraPos[1])
+	const y = cameraScale * (pos[2] - cameraPos[2]) / (pos[1] - cameraPos[1])
 	return {x, y}
 }
 
