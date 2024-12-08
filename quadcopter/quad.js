@@ -13,6 +13,7 @@ let roll = 0
 // drone movement
 let pos = [0, 0, 0]
 let speed = [0, 0, 0]
+let accel = [0, 0, 0]
 let gravity = [0, 0, -9.8]
 let propulsion
 
@@ -96,7 +97,7 @@ function update() {
 
 function updatePhysics() {
 	const newTime = time + dt
-	const accel = computeAccel()
+	accel = computeAccel()
 	console.log(`speed: ${speed}`)
 	const newSpeed = sum(scale(accel, dt), speed)
 	const newPos = sum(scale(newSpeed, dt), pos)
@@ -134,8 +135,9 @@ function draw() {
 
 function drawDrone() {
 	const coords = computeDroneCoords()
-	line3d(coords[0], coords[2])
-	line3d(coords[1], coords[3])
+	line3d(coords[0], coords[2], 'blue')
+	line3d(coords[1], coords[3], 'blue')
+	line3d(pos, sum(pos, accel), 'red')
 }
 
 function computeDroneCoords() {
@@ -165,10 +167,10 @@ function display(vector) {
 	return `[${vector[0].toFixed(1)}, ${vector[1].toFixed(1)}, ${vector[2].toFixed(1)}]`
 }
 
-function line3d(pos1, pos2) {
+function line3d(pos1, pos2, color) {
 	const point1 = convert3d(pos1)
 	const point2 = convert3d(pos2)
-	line2d(point1, point2)
+	line2d(point1, point2, color)
 
 }
 
@@ -178,7 +180,8 @@ function convert3d(pos) {
 	return {x, y}
 }
 
-function line2d(point1, point2) {
+function line2d(point1, point2, color) {
+	ctx.strokeStyle = color
 	ctx.beginPath()
 	ctx.moveTo(width / 2 + point1.x, height / 2 + point1.y)
 	ctx.lineTo(width / 2 + point2.x, height / 2 + point2.y)
