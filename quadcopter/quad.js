@@ -15,10 +15,11 @@ let pos = [0, 0, 0]
 let speed = [0, 0, 0]
 let accel = [0, 0, 0]
 let gravity = [0, 0, -9.8]
+let propulsion
 
 // parameters
 const fontSize = 16
-const cameraPos = [0, -1, -0.5]
+const cameraPos = [0, -1, 1]
 const cameraScale = 200
 let ctx, updater, raw
 let width, height
@@ -40,6 +41,9 @@ function run() {
 	updater = window.setInterval(() => {
 		update()
 		draw()
+		if (propulsion.isFinished()) {
+			pause()
+		}
 	}, dt * 1000)
 }
 
@@ -70,6 +74,7 @@ function resetSimulation() {
 	accel = [0, 0, 0]
 	//const nparticles = getParameter('particles')
 	//speed = getParameter('speed')
+	propulsion = new Propulsion()
 	console.log('reset')
 }
 
@@ -88,6 +93,7 @@ function update() {
 
 function updatePhysics() {
 	const newTime = time + dt
+	accel = [0, 0, propulsion.computeAccel(dt)]
 	const newAccel = sum(accel, gravity)
 	console.log(`speed: ${speed}`)
 	const newSpeed = sum(scale(newAccel, dt), speed)
@@ -104,6 +110,7 @@ function updatePhysics() {
 
 function draw() {
 	ctx.clearRect(0, height, width, height + fontSize)
+	ctx.clearRect(0, 0, width, height)
 	//ctx.putImageData(raw, 0, 0);
 	drawDrone()
 	ctx.fillText(`t = ${time.toFixed(1)} s`, 100, height + fontSize - 1)
@@ -152,7 +159,7 @@ function line3d(pos1, pos2) {
 
 function convert3d(pos) {
 	const x = cameraScale * (pos[0] - cameraPos[0]) / (pos[1] - cameraPos[1])
-	const y = cameraScale * (pos[2] - cameraPos[2]) / (pos[1] - cameraPos[1])
+	const y = - cameraScale * (pos[2] - cameraPos[2]) / (pos[1] - cameraPos[1])
 	return {x, y}
 }
 
@@ -166,96 +173,38 @@ function line2d(point1, point2) {
 	ctx.stroke()
 }
 
-function count(value) {
-	let count = 0
-	const p = new Particle()
-	for (let i = 0; i < raw.data.length; i++) {
-		if (raw.data[i + 3] === value) {
-			count += 1
-		}
-	}
-	return count
-}
-
-class Particle {
-	x = Math.round(width / 2)
-	y = Math.round(height / 2)
-
-	move() {
-		this.launch()
-		if (this.x >= width) {
-			this.x = width - 1
-		}
-		if (this.x < 0) {
-			this.x = 0
-		}
-		if (this.y >= height) {
-			this.y = height - 1
-		}
-		if (this.y < 0) {
-			this.y = 0
-		}
-
+class Propulsion {
+	intervals = [[10, 9.9], [1, 0]]
+	currentInterval = 0
+	pending = 0
+	constructor() {
+		this.computePending()
 	}
 
-	drift() {
-		const r = Math.random()
-		if (r >= 0.5) {
-			if (r >= 0.75) {
-				this.x += 1
-			} else {
-				this.x -= 1
+	getInterval() {
+		return this.intervals[this.currentInterval]
+	}
+
+	computePending() {
+		const interval = this.getInterval()
+		this.pending = interval[0] || 0
+	}
+
+	computeAccel(dt) {
+		this.pending -= dt
+		if (this.pending < 0) {
+			this.currentInterval += 1
+			if (this.isFinished()) {
+				return 0
 			}
-		} else {
-			if (r >= 0.25) {
-				this.y += 1
-			} else {
-				this.y -= 1
-			}
+			this.computePending()
 		}
+		const interval = this.getInterval()
+		return interval[1]
 	}
 
-	launch() {
-		const r = Math.random() * speed
-		const angle = 2 * Math.random() * Math.PI
-		const dx = r * Math.cos(angle)
-		const dy = r * Math.sin(angle)
-		this.x += Math.round(dx)
-		this.y += Math.round(dy)
-	}
-
-	diffuse() {
-		const ox = this.x
-		const oy = this.y
-		this.move()
-		if (this.find()) {
-			this.x = ox
-			this.y = oy
-		}
-	}
-
-	getIndex() {
-		return (this.x + this.y * width) * 4
-	}
-
-	find() {
-		return raw.data[this.getIndex() + 3] === 255
-	}
-
-	erase() {
-		const index = this.getIndex()
-		raw.data[index] = 0
-		raw.data[index + 1] = 0
-		raw.data[index + 2] = 0
-		raw.data[index + 3] = erased
-	}
-
-	draw() {
-		const index = this.getIndex()
-		raw.data[index] = 0
-		raw.data[index + 1] = 0
-		raw.data[index + 2] = 0
-		raw.data[index + 3] = 255
+	isFinished() {
+		return this.currentInterval >= this.intervals.length
 	}
 }
 
