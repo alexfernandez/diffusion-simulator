@@ -14,7 +14,8 @@ let roll = 0
 let pos = [0, 0, 0]
 let speed = [0, 0, 0]
 let accel = [0, 0, 0]
-let gravity = [0, 0, -9.8]
+const g = 9.8
+let gravity = [0, 0, -g]
 let propulsion
 
 // drag
@@ -121,7 +122,7 @@ function computeAccel() {
 }
 
 function computeDrag() {
-	const factor = 0.5 * density * cd * area / mass
+	const factor = -0.5 * density * cd * area / mass
 	return scale(speed, factor)
 }
 
@@ -193,7 +194,7 @@ function line2d(point1, point2, color) {
 }
 
 class Propulsion {
-	intervals = [[5, 9.9], [2, 9], [5, 9.9], [1, 0]]
+	intervals = [[5, 0.505], [2, 0.48], [5, 0.51], [1, 0]]
 	currentInterval = 0
 	pending = 0
 	constructor() {
@@ -210,6 +211,11 @@ class Propulsion {
 	}
 
 	computeAccel(dt) {
+		const value = this.computeValue(dt)
+		return value * 2 * g
+	}
+
+	computeValue(dt) {
 		this.pending -= dt
 		if (this.pending < 0) {
 			this.currentInterval += 1
