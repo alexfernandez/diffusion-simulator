@@ -13,9 +13,13 @@ let roll = 0
 // drone movement
 let pos = [0, 0, 0]
 let speed = [0, 0, 0]
-let accel = [0, 0, 0]
 let gravity = [0, 0, -9.8]
 let propulsion
+
+// drag
+const cd = 0.4
+const density = 1.2
+const area = size * size
 
 // parameters
 const fontSize = 16
@@ -71,7 +75,6 @@ function resetSimulation() {
 	//raw = ctx.getImageData(0, 0, width, height);
 	pos = [0, 0, 0]
 	speed = [0, 0, 0]
-	accel = [0, 0, 0]
 	//const nparticles = getParameter('particles')
 	//speed = getParameter('speed')
 	propulsion = new Propulsion()
@@ -93,19 +96,31 @@ function update() {
 
 function updatePhysics() {
 	const newTime = time + dt
-	accel = [0, 0, propulsion.computeAccel(dt)]
-	const newAccel = sum(accel, gravity)
+	const accel = computeAccel()
 	console.log(`speed: ${speed}`)
-	const newSpeed = sum(scale(newAccel, dt), speed)
+	const newSpeed = sum(scale(accel, dt), speed)
 	const newPos = sum(scale(newSpeed, dt), pos)
 	if (newPos[2] < 0) {
 		newPos[2] = 0
 		newSpeed[2] = 0
 	}
-	console.log('accel', newAccel, scale(newAccel, dt), 'speed', newSpeed, newPos)
 	time = newTime
 	speed = newSpeed
 	pos = newPos
+}
+
+function computeAccel() {
+	const accel = [0, 0, propulsion.computeAccel(dt)]
+	const accelGrav = sum(accel, gravity)
+	const drag = computeDrag()
+	console.log(`drag: ${drag}`)
+	const total = sum(accelGrav, drag)
+	return total
+}
+
+function computeDrag() {
+	const factor = 0.5 * density * cd * area
+	return scale(speed, factor)
 }
 
 function draw() {
@@ -164,7 +179,6 @@ function convert3d(pos) {
 }
 
 function line2d(point1, point2) {
-	console.log(point1, point2)
 	ctx.beginPath()
 	ctx.moveTo(width / 2 + point1.x, height / 2 + point1.y)
 	ctx.lineTo(width / 2 + point2.x, height / 2 + point2.y)
@@ -174,7 +188,7 @@ function line2d(point1, point2) {
 }
 
 class Propulsion {
-	intervals = [[10, 9.9], [1, 0]]
+	intervals = [[5, 9.9], [2, 9], [5, 9.9], [1, 0]]
 	currentInterval = 0
 	pending = 0
 	constructor() {
