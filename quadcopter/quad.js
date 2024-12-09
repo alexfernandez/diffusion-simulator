@@ -16,7 +16,7 @@ const maxThrustPerMotor = 0.15
 const minPwm = 128
 const maxPwm = 255
 
-// parameters
+// screen
 let updater, screen
 
 window.onload = () => {
@@ -33,6 +33,9 @@ window.onload = () => {
 }
 
 function run() {
+	drone.yaw = getDegrees('yaw')
+	drone.pitch = getDegrees('pitch')
+	drone.roll = getDegrees('roll')
 	if (updater) return
 	updater = window.setInterval(() => {
 		update()
@@ -59,9 +62,11 @@ function resetSimulation() {
 	console.log('resetting')
 	time = 0
 	drone = new Drone()
-	//const nparticles = getParameter('particles')
-	//speed = getParameter('speed')
 	console.log('reset')
+}
+
+function getDegrees(name) {
+	return getParameter(name) * Math.PI / 180
 }
 
 function getParameter(name) {
