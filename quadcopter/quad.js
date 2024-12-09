@@ -82,7 +82,6 @@ function getCheckbox(name) {
 function update(dt) {
 	const newTime = time + dt
 	drone.update(dt)
-	screen.draw()
 	time = newTime
 }
 
