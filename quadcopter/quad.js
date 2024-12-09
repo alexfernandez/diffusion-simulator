@@ -17,15 +17,12 @@ const minPwm = 128
 const maxPwm = 255
 
 // parameters
-const fontSize = 16
-const cameraPos = [0, -1, 1]
-const cameraScale = 200
-let ctx, updater, raw
-let width, height
+let updater, screen
 
 window.onload = () => {
+	screen = new Screen()
 	resetSimulation()
-	draw()
+	screen.draw()
 	if (getCheckbox('autorun')) {
 		console.log('running')
 		run()
@@ -39,7 +36,7 @@ function run() {
 	if (updater) return
 	updater = window.setInterval(() => {
 		update()
-		draw()
+		screen.draw()
 		if (drone.propulsion.isFinished()) {
 			pause()
 		}
@@ -55,19 +52,12 @@ function pause() {
 function reset() {
 	pause()
 	resetSimulation()
-	draw()
+	screen.draw()
 }
 
 function resetSimulation() {
 	console.log('resetting')
 	time = 0
-	const canvas = document.getElementById('canvas');
-	width = canvas.width
-	height = canvas.height - fontSize
-	ctx = canvas.getContext('2d');
-	ctx.font = '16px sans-serif'
-	ctx.clearRect(0, 0, width, height)
-	//raw = ctx.getImageData(0, 0, width, height);
 	drone = new Drone()
 	//const nparticles = getParameter('particles')
 	//speed = getParameter('speed')
@@ -85,18 +75,8 @@ function getCheckbox(name) {
 function update() {
 	const newTime = time + dt
 	drone.update()
-	draw()
+	screen.draw()
 	time = newTime
-}
-
-function draw() {
-	ctx.clearRect(0, height, width, height + fontSize)
-	ctx.clearRect(0, 0, width, height)
-	//ctx.putImageData(raw, 0, 0);
-	drone.draw()
-	ctx.fillText(`t = ${time.toFixed(1)} s`, 100, height + fontSize - 1)
-	ctx.fillText(`pos = ${display(drone.pos)}`, 300, height + fontSize - 1)
-	ctx.fillText(`acc = ${display(drone.accel)}`, 500, height + fontSize - 1)
 }
 
 function sum([x1, y1, z1], [x2, y2, z2]) {
@@ -115,29 +95,6 @@ function scale([x, y, z], factor) {
 
 function display([x, y, z]) {
 	return `[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`
-}
-
-function line3d(pos1, pos2, color) {
-	const point1 = convert3d(pos1)
-	const point2 = convert3d(pos2)
-	line2d(point1, point2, color)
-
-}
-
-function convert3d([vx, vy, vz]) {
-	const x = cameraScale * (vx - cameraPos[0]) / (vy - cameraPos[1])
-	const y = - cameraScale * (vz - cameraPos[2]) / (vy - cameraPos[1])
-	return {x, y}
-}
-
-function line2d(point1, point2, color) {
-	ctx.strokeStyle = color
-	ctx.beginPath()
-	ctx.moveTo(width / 2 + point1.x, height / 2 + point1.y)
-	ctx.lineTo(width / 2 + point2.x, height / 2 + point2.y)
-	//ctx.moveTo(30, 50)
-	//ctx.lineTo(150, 100)
-	ctx.stroke()
 }
 
 class Drone {
@@ -174,11 +131,11 @@ class Drone {
 
 	draw() {
 		const [c1, c2, c3, c4] = this.computeCoords()
-		line3d(c1, c3, 'blue')
-		line3d(c2, c4, 'blue')
+		screen.line3d(c1, c3, 'blue')
+		screen.line3d(c2, c4, 'blue')
 		const pos = this.convertToInertial(this.pos)
 		const accel = sum(pos, this.convertToInertial(this.accel))
-		line3d(pos, accel, 'red')
+		screen.line3d(pos, accel, 'red')
 	}
 
 	computeCoords() {
@@ -254,6 +211,60 @@ class Propulsion {
 
 	isFinished() {
 		return this.currentInterval >= this.intervals.length
+	}
+}
+
+class Screen {
+	width = 0
+	height = 0
+	ctx = null
+	raw = null
+	updater = null
+	fontSize = 16
+	cameraPos = [0, -1, 1]
+	cameraScale = 200
+
+	constructor() {
+		const canvas = document.getElementById('canvas');
+		this.width = canvas.width
+		this.height = canvas.height - this.fontSize
+		this.ctx = canvas.getContext('2d');
+		this.ctx.font = '16px sans-serif'
+		this.ctx.clearRect(0, 0, this.width, this.height)
+		//raw = ctx.getImageData(0, 0, width, height);
+	}
+
+	clear() {
+	}
+
+	draw() {
+		this.ctx.clearRect(0, this.height, this.width, this.height + this.fontSize)
+		this.ctx.clearRect(0, 0, this.width, this.height)
+		//ctx.putImageData(raw, 0, 0);
+		drone.draw()
+		this.ctx.fillText(`t = ${time.toFixed(1)} s`, 100, this.height + this.fontSize - 1)
+		this.ctx.fillText(`pos = ${display(drone.pos)}`, 300, this.height + this.fontSize - 1)
+		this.ctx.fillText(`acc = ${display(drone.accel)}`, 500, this.height + this.fontSize - 1)
+	}
+
+	line3d(pos1, pos2, color) {
+		const point1 = this.convert3d(pos1)
+		const point2 = this.convert3d(pos2)
+		this.line2d(point1, point2, color)
+	}
+
+	convert3d([vx, vy, vz]) {
+		const x = this.cameraScale * (vx - this.cameraPos[0]) / (vy - this.cameraPos[1])
+		const y = - this.cameraScale * (vz - this.cameraPos[2]) / (vy - this.cameraPos[1])
+		return {x, y}
+	}
+
+	line2d(point1, point2, color) {
+		this.ctx.strokeStyle = color
+		this.ctx.beginPath()
+		this.ctx.moveTo(this.width / 2 + point1.x, this.height / 2 + point1.y)
+		this.ctx.lineTo(this.width / 2 + point2.x, this.height / 2 + point2.y)
+		this.ctx.stroke()
 	}
 }
 
