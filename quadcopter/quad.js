@@ -5,27 +5,16 @@ const dt = 0.1
 let time = 0
 
 // drone characterization
-let size = 0.075
-let pitch = 0
-let yaw = 0
-let roll = 0
+let drone
+const size = 0.075
+const mass = 0.03
 
 // drone movement
-let pos = [0, 0, 0]
-let speed = [0, 0, 0]
-let accel = [0, 0, 0]
 const g = 9.8
 let gravity = [0, 0, -g]
-let propulsion
 const maxThrustPerMotor = 0.15
 const minPwm = 128
 const maxPwm = 255
-
-// drag
-const cd = 0.4
-const density = 1.2
-const area = size * size
-const mass = 0.03
 
 // parameters
 const fontSize = 16
@@ -51,7 +40,7 @@ function run() {
 	updater = window.setInterval(() => {
 		update()
 		draw()
-		if (propulsion.isFinished()) {
+		if (drone.propulsion.isFinished()) {
 			pause()
 		}
 	}, dt * 1000)
@@ -79,11 +68,9 @@ function resetSimulation() {
 	ctx.font = '16px sans-serif'
 	ctx.clearRect(0, 0, width, height)
 	//raw = ctx.getImageData(0, 0, width, height);
-	pos = [0, 0, 0]
-	speed = [0, 0, 0]
+	drone = new Drone()
 	//const nparticles = getParameter('particles')
 	//speed = getParameter('speed')
-	propulsion = new Propulsion()
 	console.log('reset')
 }
 
@@ -96,63 +83,20 @@ function getCheckbox(name) {
 }
 
 function update() {
-	updatePhysics()
-	draw()
-}
-
-function updatePhysics() {
 	const newTime = time + dt
-	accel = computeAccel()
-	console.log(`speed: ${speed}`)
-	const newSpeed = sum(scale(accel, dt), speed)
-	const newPos = sum(scale(newSpeed, dt), pos)
-	if (newPos[2] < 0) {
-		newPos[2] = 0
-		newSpeed[2] = 0
-	}
+	drone.update()
+	draw()
 	time = newTime
-	speed = newSpeed
-	pos = newPos
-}
-
-function computeAccel() {
-	const accel = [0, 0, propulsion.computeAccel(dt)]
-	const accelGrav = sum(accel, gravity)
-	const drag = computeDrag()
-	console.log(`drag: ${drag}`)
-	const total = sum(accelGrav, drag)
-	return total
-}
-
-function computeDrag() {
-	const factor = -0.5 * density * cd * area / mass
-	return scale(speed, factor)
 }
 
 function draw() {
 	ctx.clearRect(0, height, width, height + fontSize)
 	ctx.clearRect(0, 0, width, height)
 	//ctx.putImageData(raw, 0, 0);
-	drawDrone()
+	drone.draw()
 	ctx.fillText(`t = ${time.toFixed(1)} s`, 100, height + fontSize - 1)
-	ctx.fillText(`pos = ${display(pos)}`, 300, height + fontSize - 1)
-	ctx.fillText(`acc = ${display(accel)}`, 500, height + fontSize - 1)
-}
-
-function drawDrone() {
-	const coords = computeDroneCoords()
-	line3d(coords[0], coords[2], 'blue')
-	line3d(coords[1], coords[3], 'blue')
-	line3d(pos, sum(pos, accel), 'red')
-}
-
-function computeDroneCoords() {
-	const dist = size / 2
-	const coord1 = sum(pos, [-dist, -dist, 0])
-	const coord2 = sum(pos, [dist, -dist, 0])
-	const coord3 = sum(pos, [dist, dist, 0])
-	const coord4 = sum(pos, [-dist, dist, 0])
-	return [coord1, coord2, coord3, coord4]
+	ctx.fillText(`pos = ${display(drone.pos)}`, 300, height + fontSize - 1)
+	ctx.fillText(`acc = ${display(drone.accel)}`, 500, height + fontSize - 1)
 }
 
 function sum(vector1, vector2) {
@@ -194,6 +138,66 @@ function line2d(point1, point2, color) {
 	//ctx.moveTo(30, 50)
 	//ctx.lineTo(150, 100)
 	ctx.stroke()
+}
+
+class Drone {
+	pitch = 0
+	yaw = 0
+	roll = 0
+	pos = [0, 0, 0]
+	speed = [0, 0, 0]
+	accel = [0, 0, 0]
+	propulsion = new Propulsion()
+	dragComputer = new DragComputer()
+
+	update() {
+		this.accel = this.computeAccel()
+		console.log(`speed: ${this.speed}`)
+		const newSpeed = sum(scale(this.accel, dt), this.speed)
+		const newPos = sum(scale(newSpeed, dt), this.pos)
+		if (newPos[2] < 0) {
+			newPos[2] = 0
+			newSpeed[2] = 0
+		}
+		this.speed = newSpeed
+		this.pos = newPos
+	}
+
+	computeAccel() {
+		const accel = [0, 0, this.propulsion.computeAccel(dt)]
+		const accelGrav = sum(accel, gravity)
+		const drag = this.dragComputer.compute(this.speed)
+		console.log(`drag: ${drag}`)
+		const total = sum(accelGrav, drag)
+		return total
+	}
+
+	draw() {
+		const coords = this.computeDroneCoords()
+		line3d(coords[0], coords[2], 'blue')
+		line3d(coords[1], coords[3], 'blue')
+		line3d(this.pos, sum(this.pos, this.accel), 'red')
+	}
+
+	computeDroneCoords() {
+		const dist = size / 2
+		const coord1 = sum(this.pos, [-dist, -dist, 0])
+		const coord2 = sum(this.pos, [dist, -dist, 0])
+		const coord3 = sum(this.pos, [dist, dist, 0])
+		const coord4 = sum(this.pos, [-dist, dist, 0])
+		return [coord1, coord2, coord3, coord4]
+	}
+}
+
+class DragComputer {
+	cd = 0.4
+	density = 1.2
+	area = size * size
+
+	compute(speed) {
+		const factor = -0.5 * this.density * this.cd * this.area / mass
+		return scale(speed, factor)
+	}
 }
 
 class Propulsion {
