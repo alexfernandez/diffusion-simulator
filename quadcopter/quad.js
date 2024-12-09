@@ -141,9 +141,9 @@ function line2d(point1, point2, color) {
 }
 
 class Drone {
-	pitch = 0
-	yaw = 0
-	roll = 0
+	pitch = 0 //Math.PI/8
+	yaw = 0 //Math.PI/8
+	roll = 0 //Math.PI/8
 	pos = [0, 0, 0]
 	speed = [0, 0, 0]
 	accel = [0, 0, 0]
@@ -169,23 +169,38 @@ class Drone {
 		const drag = this.dragComputer.compute(this.speed)
 		console.log(`drag: ${drag}`)
 		const total = sum(accelGrav, drag)
-		return total
+		return this.convertToInertial(total)
 	}
 
 	draw() {
-		const coords = this.computeDroneCoords()
-		line3d(coords[0], coords[2], 'blue')
-		line3d(coords[1], coords[3], 'blue')
-		line3d(this.pos, sum(this.pos, this.accel), 'red')
+		const [c1, c2, c3, c4] = this.computeCoords()
+		line3d(c1, c3, 'blue')
+		line3d(c2, c4, 'blue')
+		const pos = this.convertToInertial(this.pos)
+		const accel = sum(pos, this.convertToInertial(this.accel))
+		line3d(pos, accel, 'red')
 	}
 
-	computeDroneCoords() {
+	computeCoords() {
 		const dist = size / 2
 		const coord1 = sum(this.pos, [-dist, -dist, 0])
 		const coord2 = sum(this.pos, [dist, -dist, 0])
 		const coord3 = sum(this.pos, [dist, dist, 0])
 		const coord4 = sum(this.pos, [-dist, dist, 0])
-		return [coord1, coord2, coord3, coord4]
+		return [coord1, coord2, coord3, coord4].map(v => this.convertToInertial(v))
+	}
+
+	convertToInertial([x, y, z]) {
+		const cy = Math.cos(this.yaw)
+		const sy = Math.sin(this.yaw)
+		const cp = Math.cos(-this.pitch)
+		const sp = Math.sin(-this.pitch)
+		const cr = Math.cos(this.roll)
+		const sr = Math.sin(this.roll)
+		const xp = x * cy*cp + y * (cy*sp*sr - sy*cr) + z * (cy*sp*cr + sy*sr)
+		const yp = x * sy*cp + y * (sy*sp*sr - cy*cr) + z * (sy*sp*cr - cy*sr)
+		const zp = - x * sp + y * (cp*sr) + z * (cp*cr)
+		return [xp, yp, zp]
 	}
 }
 
