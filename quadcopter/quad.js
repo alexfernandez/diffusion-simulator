@@ -12,7 +12,7 @@ const mass = 0.03
 // drone movement
 const g = 9.8
 let gravity = [0, 0, -g]
-const maxThrustPerMotor = 0.15
+const maxThrustPerMotor = 0.015
 const minPwm = 128
 const maxPwm = 255
 
@@ -179,7 +179,7 @@ class DragComputer {
 }
 
 class Propulsion {
-	intervals = [[5, 191], [2, 186], [5, 192], [1, 128]]
+	intervals = [[5, 192], [2, 187], [6, 193], [2, 128]]
 	currentInterval = 0
 	pending = 0
 	constructor() {
@@ -195,11 +195,11 @@ class Propulsion {
 		this.pending = interval[0] || 0
 	}
 
-	computeAccel(dt) {
+	computeForce(dt) {
 		const pwm = this.computePwm(dt)
 		const value = (pwm - minPwm) / (maxPwm - minPwm)
-		const thrust = maxThrustPerMotor * value
-		return 4 * thrust / mass
+		const thrust = maxThrustPerMotor * g * value
+		return 4 * thrust
 	}
 
 	computePwm(dt) {
