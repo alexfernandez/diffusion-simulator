@@ -15,7 +15,8 @@ let gravity = [0, 0, -g]
 const maxThrustPerMotor = 0.015
 const minPwm = 128
 const maxPwm = 255
-const speedBroken = 5
+const maxSpeed = 5
+const separationSpeed = 5
 const maxSeparation = 4
 
 // screen
@@ -123,8 +124,8 @@ class Drone {
 		const newPos = sum(scale(newSpeed, dt), this.pos)
 		if (newPos[2] < 0) {
 			newPos[2] = 0
-			console.log(`leñaso: ${newSpeed[2]} > ${speedBroken}?`)
-			if (Math.abs(newSpeed[2]) > speedBroken) {
+			console.log(`crash: ${newSpeed[2]} > ${maxSpeed}?`)
+			if (Math.abs(newSpeed[2]) > maxSpeed) {
 				console.log(`leñaso`)
 				this.brokenSeparation = dt
 			}
@@ -138,7 +139,7 @@ class Drone {
 	}
 
 	computeBroken(dt) {
-		this.brokenSeparation += dt
+		this.brokenSeparation += separationSpeed * dt
 	}
 
 	computeAccel() {
@@ -166,7 +167,6 @@ class Drone {
 		const coord3 = [dist, dist, 0]
 		const coord4 = [-dist, dist, 0]
 		const endpoints = [coord1, coord2, coord3, coord4]
-		console.log(`bs: ${this.brokenSeparation}`)
 		return endpoints.map(endpoint => this.convertEndpoint(endpoint))
 	}
 
