@@ -99,22 +99,22 @@ function draw() {
 	ctx.fillText(`acc = ${display(drone.accel)}`, 500, height + fontSize - 1)
 }
 
-function sum(vector1, vector2) {
-	if (vector1[0] === undefined) {
-		throw Error(`Bad vector1 for sum: ${vector1}`)
+function sum([x1, y1, z1], [x2, y2, z2]) {
+	if (x1 === undefined) {
+		throw Error(`Bad vector1 for sum: ${x1}`)
 	}
-	if (vector2[0] === undefined) {
-		throw Error(`Bad vector2 for sum: ${vector2}`)
+	if (x2 === undefined) {
+		throw Error(`Bad vector2 for sum: ${x2}`)
 	}
-	return [vector1[0] + vector2[0], vector1[1] + vector2[1], vector1[2] + vector2[2]]
+	return [x1 + x2, y1 + y2, z1 + z2]
 }
 
-function scale(vector, factor) {
-	return [factor * vector[0], factor * vector[1], factor * vector[2]]
+function scale([x, y, z], factor) {
+	return [factor * x, factor * y, factor * z]
 }
 
-function display(vector) {
-	return `[${vector[0].toFixed(1)}, ${vector[1].toFixed(1)}, ${vector[2].toFixed(1)}]`
+function display([x, y, z]) {
+	return `[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`
 }
 
 function line3d(pos1, pos2, color) {
@@ -124,9 +124,9 @@ function line3d(pos1, pos2, color) {
 
 }
 
-function convert3d(pos) {
-	const x = cameraScale * (pos[0] - cameraPos[0]) / (pos[1] - cameraPos[1])
-	const y = - cameraScale * (pos[2] - cameraPos[2]) / (pos[1] - cameraPos[1])
+function convert3d([vx, vy, vz]) {
+	const x = cameraScale * (vx - cameraPos[0]) / (vy - cameraPos[1])
+	const y = - cameraScale * (vz - cameraPos[2]) / (vy - cameraPos[1])
 	return {x, y}
 }
 
