@@ -15,6 +15,7 @@ let gravity = [0, 0, -g]
 const maxThrustPerMotor = 0.015
 const minPwm = 128
 const maxPwm = 255
+const speedBroken = 5
 
 // screen
 let updater, screen
@@ -38,7 +39,7 @@ function run() {
 	drone.roll = getDegrees('roll')
 	if (updater) return
 	updater = window.setInterval(() => {
-		update()
+		update(dt)
 		screen.draw()
 		if (drone.propulsion.isFinished()) {
 			pause()
@@ -77,9 +78,9 @@ function getCheckbox(name) {
 	return document.getElementById(name).checked
 }
 
-function update() {
+function update(dt) {
 	const newTime = time + dt
-	drone.update()
+	drone.update(dt)
 	screen.draw()
 	time = newTime
 }
@@ -109,15 +110,24 @@ class Drone {
 	pos = [0, 0, 0]
 	speed = [0, 0, 0]
 	accel = [0, 0, 0]
+	broken = false
+	brokenSeparation = 0
 	propulsion = new Propulsion()
 	dragComputer = new DragComputer()
 
-	update() {
+	update(dt) {
+		if (this.broken) {
+			this.computeBroken(dt)
+			return
+		}
 		this.accel = this.computeAccel()
 		const newSpeed = sum(scale(this.accel, dt), this.speed)
 		const newPos = sum(scale(newSpeed, dt), this.pos)
 		if (newPos[2] < 0) {
 			newPos[2] = 0
+			if (newSpeed[2] > speedBroken) {
+				this.broken = true
+			}
 			newSpeed[2] = 0
 		}
 		this.pos = newPos
@@ -125,6 +135,10 @@ class Drone {
 		console.log(`time: ${time.toFixed(1)}`)
 		console.log(`speed: ${this.speed}`)
 		console.log(`accel: ${this.accel}`)
+	}
+
+	computeBroken(dt) {
+		this.brokenSeparation += dt
 	}
 
 	computeAccel() {
@@ -137,20 +151,22 @@ class Drone {
 	}
 
 	draw() {
-		const [c1, c2, c3, c4] = this.computeCoords()
-		screen.line3d(c1, c3, 'blue')
-		screen.line3d(c2, c4, 'blue')
-		const accel = sum(this.pos, this.convertToInertial(this.accel))
-		screen.line3d(this.pos, accel, 'red')
+		const segments = this.computeSegments()
+		for (const [start, end] of segments) {
+			screen.line3d(start, end, 'blue')
+		}
+		const posAccel = sum(this.pos, this.convertToInertial(this.accel))
+		screen.line3d(this.pos, posAccel, 'red')
 	}
 
-	computeCoords() {
+	computeSegments() {
 		const dist = size / 2
 		const coord1 = [-dist, -dist, 0]
 		const coord2 = [dist, -dist, 0]
 		const coord3 = [dist, dist, 0]
 		const coord4 = [-dist, dist, 0]
-		return [coord1, coord2, coord3, coord4].map(vector => sum(this.pos, this.convertToInertial(vector)))
+		const endpoints = [coord1, coord2, coord3, coord4]
+		return endpoints.map(endpoint => [this.pos, sum(this.pos, this.convertToInertial(endpoint))])
 	}
 
 	convertToInertial([x, y, z]) {
