@@ -246,9 +246,16 @@ class Screen {
 		this.ctx.clearRect(0, 0, this.width, this.height)
 		//ctx.putImageData(raw, 0, 0);
 		drone.draw()
+		this.drawHorizon()
 		this.ctx.fillText(`t = ${time.toFixed(1)} s`, 100, this.height + this.fontSize - 1)
 		this.ctx.fillText(`pos = ${display(drone.pos)}`, 300, this.height + this.fontSize - 1)
 		this.ctx.fillText(`acc = ${display(drone.accel)}`, 500, this.height + this.fontSize - 1)
+	}
+
+	drawHorizon() {
+		const y = 1000
+		const max = 10000
+		this.line3d([-max, y, 0], [max, y, 0], 'orange')
 	}
 
 	line3d(pos1, pos2, color) {
