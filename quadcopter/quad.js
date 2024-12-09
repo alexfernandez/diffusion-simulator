@@ -98,7 +98,7 @@ function display([x, y, z]) {
 }
 
 class Drone {
-	pitch = 0 //Math.PI/8
+	pitch = 0.001 //Math.PI/8
 	yaw = 0 //Math.PI/8
 	roll = 0 //Math.PI/8
 	pos = [0, 0, 0]
@@ -121,30 +121,29 @@ class Drone {
 	}
 
 	computeAccel() {
-		const accel = [0, 0, this.propulsion.computeAccel(dt)]
+		const accel = this.convertToInertial([0, 0, this.propulsion.computeAccel(dt)])
 		const accelGrav = sum(accel, gravity)
 		const drag = this.dragComputer.compute(this.speed)
 		console.log(`drag: ${drag}`)
 		const total = sum(accelGrav, drag)
-		return this.convertToInertial(total)
+		return total
 	}
 
 	draw() {
 		const [c1, c2, c3, c4] = this.computeCoords()
 		screen.line3d(c1, c3, 'blue')
 		screen.line3d(c2, c4, 'blue')
-		const pos = this.convertToInertial(this.pos)
-		const accel = sum(pos, this.convertToInertial(this.accel))
-		screen.line3d(pos, accel, 'red')
+		const accel = sum(this.pos, this.convertToInertial(this.accel))
+		screen.line3d(this.pos, accel, 'red')
 	}
 
 	computeCoords() {
 		const dist = size / 2
-		const coord1 = sum(this.pos, [-dist, -dist, 0])
-		const coord2 = sum(this.pos, [dist, -dist, 0])
-		const coord3 = sum(this.pos, [dist, dist, 0])
-		const coord4 = sum(this.pos, [-dist, dist, 0])
-		return [coord1, coord2, coord3, coord4].map(v => this.convertToInertial(v))
+		const coord1 = [-dist, -dist, 0]
+		const coord2 = [dist, -dist, 0]
+		const coord3 = [dist, dist, 0]
+		const coord4 = [-dist, dist, 0]
+		return [coord1, coord2, coord3, coord4].map(vector => sum(this.pos, this.convertToInertial(vector)))
 	}
 
 	convertToInertial([x, y, z]) {
