@@ -16,6 +16,7 @@ const maxThrustPerMotor = 0.015
 const minPwm = 128
 const maxPwm = 255
 const speedBroken = 5
+const maxSeparation = 4
 
 // screen
 let updater, screen
@@ -41,7 +42,7 @@ function run() {
 	updater = window.setInterval(() => {
 		update(dt)
 		screen.draw()
-		if (drone.propulsion.isFinished()) {
+		if (drone.isFinished()) {
 			pause()
 		}
 	}, dt * 1000)
@@ -110,23 +111,23 @@ class Drone {
 	pos = [0, 0, 0]
 	speed = [0, 0, 0]
 	accel = [0, 0, 0]
-	broken = false
 	brokenSeparation = 0
 	propulsion = new Propulsion()
 	dragComputer = new DragComputer()
 
 	update(dt) {
-		if (this.broken) {
-			this.computeBroken(dt)
-			return
+		if (this.brokenSeparation) {
+			return this.computeBroken(dt)
 		}
 		this.accel = this.computeAccel()
 		const newSpeed = sum(scale(this.accel, dt), this.speed)
 		const newPos = sum(scale(newSpeed, dt), this.pos)
 		if (newPos[2] < 0) {
 			newPos[2] = 0
-			if (newSpeed[2] > speedBroken) {
-				this.broken = true
+			console.log(`leñaso: ${newSpeed[2]} > ${speedBroken}?`)
+			if (Math.abs(newSpeed[2]) > speedBroken) {
+				console.log(`leñaso`)
+				this.brokenSeparation = dt
 			}
 			newSpeed[2] = 0
 		}
@@ -166,7 +167,15 @@ class Drone {
 		const coord3 = [dist, dist, 0]
 		const coord4 = [-dist, dist, 0]
 		const endpoints = [coord1, coord2, coord3, coord4]
-		return endpoints.map(endpoint => [this.pos, sum(this.pos, this.convertToInertial(endpoint))])
+		console.log(`bs: ${this.brokenSeparation}`)
+		return endpoints.map(endpoint => this.convertEndpoint(endpoint))
+	}
+
+	convertEndpoint(endpoint) {
+		const inertial = this.convertToInertial(endpoint)
+		const start = sum(this.pos, scale(inertial, this.brokenSeparation))
+		const end = sum(start, inertial)
+		return [start, end]
 	}
 
 	convertToInertial([x, y, z]) {
@@ -180,6 +189,13 @@ class Drone {
 		const yp = x * sy*cp + y * (sy*sp*sr - cy*cr) + z * (sy*sp*cr - cy*sr)
 		const zp = - x * sp + y * (cp*sr) + z * (cp*cr)
 		return [xp, yp, zp]
+	}
+
+	isFinished() {
+		if (this.brokenSeparation > maxSeparation) {
+			return true
+		}
+		return this.propulsion.isFinished()
 	}
 }
 
