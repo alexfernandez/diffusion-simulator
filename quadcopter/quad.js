@@ -114,22 +114,24 @@ class Drone {
 
 	update() {
 		this.accel = this.computeAccel()
-		console.log(`speed: ${this.speed}`)
 		const newSpeed = sum(scale(this.accel, dt), this.speed)
 		const newPos = sum(scale(newSpeed, dt), this.pos)
 		if (newPos[2] < 0) {
 			newPos[2] = 0
 			newSpeed[2] = 0
 		}
-		this.speed = newSpeed
 		this.pos = newPos
+		this.speed = newSpeed
+		console.log(`time: ${time.toFixed(1)}`)
+		console.log(`speed: ${this.speed}`)
+		console.log(`accel: ${this.accel}`)
 	}
 
 	computeAccel() {
-		const accel = this.convertToInertial([0, 0, this.propulsion.computeAccel(dt)])
-		const accelGrav = sum(accel, gravity)
+		const accel = this.propulsion.computeForce(dt) / mass
+		const inertialAccel = this.convertToInertial([0, 0, accel])
+		const accelGrav = sum(inertialAccel, gravity)
 		const drag = this.dragComputer.compute(this.speed)
-		console.log(`drag: ${drag}`)
 		const total = sum(accelGrav, drag)
 		return total
 	}
@@ -247,9 +249,10 @@ class Screen {
 		//ctx.putImageData(raw, 0, 0);
 		drone.draw()
 		this.drawHorizon()
-		this.ctx.fillText(`t = ${time.toFixed(1)} s`, 100, this.height + this.fontSize - 1)
-		this.ctx.fillText(`pos = ${display(drone.pos)}`, 300, this.height + this.fontSize - 1)
-		this.ctx.fillText(`acc = ${display(drone.accel)}`, 500, this.height + this.fontSize - 1)
+		this.ctx.fillText(`t = ${time.toFixed(1)} s`, 50, this.height + this.fontSize - 1)
+		this.ctx.fillText(`pos = ${display(drone.pos)}`, 200, this.height + this.fontSize - 1)
+		this.ctx.fillText(`vel = ${display(drone.speed)}`, 400, this.height + this.fontSize - 1)
+		this.ctx.fillText(`acc = ${display(drone.accel)}`, 600, this.height + this.fontSize - 1)
 	}
 
 	drawHorizon() {
