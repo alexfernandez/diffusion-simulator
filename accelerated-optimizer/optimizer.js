@@ -13,7 +13,7 @@ const mass = 0.03
 // drone movement
 const maxAccel = 10
 const smoothScale = 5
-const pidWeights = [0.1, 0, 2]
+const pidWeights = [0.1, 0.0001, 2]
 
 // screen
 let updater, screen
@@ -103,6 +103,7 @@ class Drone {
 	dragComputer = new DragComputer()
 	delay = 0
 	lastError = 0
+	errorSum = 0
 	algorithm = 'none'
 
 	update(dt) {
@@ -156,7 +157,8 @@ class Drone {
 	computePid() {
 		const error = this.target - this.pos
 		const proportional = error
-		const integral = 0
+		this.errorSum += error
+		const integral = this.errorSum
 		const derivative = error - this.lastError
 		this.lastError = error
 		return proportional * pidWeights[0] + integral * pidWeights[1] + derivative * pidWeights[2]
