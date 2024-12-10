@@ -12,9 +12,7 @@ const mass = 0.03
 
 // drone movement
 const g = 9.8
-const maxThrustPerMotor = 0.015
-const minPwm = 128
-const maxPwm = 255
+const maxAccel = 10
 
 // screen
 let updater, screen
@@ -101,8 +99,7 @@ class Drone {
 	accel = 0
 	speed = 3
 	pos = 40
-	target = 10
-	propulsion = new Propulsion()
+	target = 0
 	dragComputer = new DragComputer()
 
 	update(dt) {
@@ -117,15 +114,20 @@ class Drone {
 	}
 
 	computeAccel() {
+		if (this.pos > this.target) {
+			return -maxAccel
+		}
+		if (this.pos < this.target) {
+			return maxAccel
+		}
 		return 0
 	}
 
 	draw() {
 		const x = timeScale * time
-		console.log(`plotting at ${x}`)
-		screen.plot2d([x, screen.first - this.accel - 1], 'red')
-		screen.plot2d([x, screen.second - this.speed - 1], 'green')
-		screen.plot2d([x, screen.third - this.pos - 1], 'blue')
+		screen.plot2d([x, screen.axis - this.accel - 1], 'red')
+		screen.plot2d([x, screen.first + screen.axis - this.speed - 1], 'green')
+		screen.plot2d([x, screen.second + screen.axis - this.pos - 1], 'blue')
 	}
 
 	computeSegments() {
@@ -174,48 +176,6 @@ class DragComputer {
 	}
 }
 
-class Propulsion {
-	intervals = [[5, 192], [2, 187], [6, 193], [2, 128]]
-	currentInterval = 0
-	pending = 0
-	constructor() {
-		this.computePending()
-	}
-
-	getInterval() {
-		return this.intervals[this.currentInterval]
-	}
-
-	computePending() {
-		const interval = this.getInterval()
-		this.pending = interval[0] || 0
-	}
-
-	computeForce(dt) {
-		const pwm = this.computePwm(dt)
-		const value = (pwm - minPwm) / (maxPwm - minPwm)
-		const thrust = maxThrustPerMotor * g * value
-		return 4 * thrust
-	}
-
-	computePwm(dt) {
-		this.pending -= dt
-		if (this.pending < 0) {
-			this.currentInterval += 1
-			if (this.isFinished()) {
-				return 0
-			}
-			this.computePending()
-		}
-		const interval = this.getInterval()
-		return interval[1]
-	}
-
-	isFinished() {
-		return this.currentInterval >= this.intervals.length
-	}
-}
-
 class Screen {
 	width = 0
 	height = 0
@@ -233,6 +193,7 @@ class Screen {
 		this.first = this.height / 3
 		this.second = 2 * this.height / 3
 		this.third = this.height
+		this.axis = this.height / 6
 		this.ctx = canvas.getContext('2d');
 		this.ctx.font = '16px sans-serif'
 		this.ctx.clearRect(0, 0, this.width, this.height)
@@ -240,8 +201,11 @@ class Screen {
 
 	clear() {
 		this.ctx.clearRect(0, 0, this.width, this.height)
-		this.line2d([0, this.first], [this.width, this.first], 'red')
-		this.line2d([0, this.second], [this.width, this.second], 'green')
+		this.line2d([0, this.axis], [this.width, this.axis], 'red')
+		this.line2d([0, this.first], [this.width, this.first], 'black')
+		this.line2d([0, this.first + this.axis], [this.width, this.first + this.axis], 'green')
+		this.line2d([0, this.second], [this.width, this.second], 'black')
+		this.line2d([0, this.second + this.axis], [this.width, this.second + this.axis], 'blue')
 	}
 
 	draw() {
