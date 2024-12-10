@@ -37,10 +37,7 @@ window.onload = () => {
 }
 
 function run() {
-	yawTarget = getDegrees('yaw')
-	pitchTarget = getDegrees('pitch')
-	rollTarget = getDegrees('roll')
-
+	readParameters()
 	if (updater) return
 	updater = window.setInterval(() => {
 		update(dt)
@@ -65,9 +62,16 @@ function reset() {
 
 function resetSimulation() {
 	console.log('resetting')
+	readParameters()
 	time = 0
 	drone = new Drone()
 	console.log('reset')
+}
+
+function readParameters() {
+	yawTarget = getDegrees('yaw')
+	pitchTarget = getDegrees('pitch')
+	rollTarget = getDegrees('roll')
 }
 
 function getDegrees(name) {
@@ -246,7 +250,7 @@ class Propulsion {
 		const yawTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
 		const pitchTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
 		const rollTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
-		const radius = drone.size * Math.sqrt(2) / 2
+		const radius = size * Math.sqrt(2) / 2
 		const a1 = zAccel / 4 + (rollTorque + pitchTorque + yawTorque) / (4 * mass * radius)
 		const a2 = zAccel / 4 + (rollTorque - pitchTorque - yawTorque) / (4 * mass * radius)
 		const a3 = zAccel / 4 + (-rollTorque - pitchTorque + yawTorque) / (4 * mass * radius)
