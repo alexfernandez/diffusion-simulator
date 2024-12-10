@@ -7,6 +7,7 @@ let time = 0
 // drone characterization
 let drone
 const size = 0.075
+const radius = size * Math.sqrt(2) / 2
 const mass = 0.03
 
 // drone movement
@@ -111,8 +112,8 @@ function display([x, y, z]) {
 }
 
 class Drone {
-	pitch = new AcceleratedDistance()
 	yaw = new AcceleratedDistance()
+	pitch = new AcceleratedDistance()
 	roll = new AcceleratedDistance()
 	pos = new AcceleratedVector()
 	brokenSeparation = 0
@@ -127,6 +128,10 @@ class Drone {
 		this.forces = this.propulsion.computeForces(dt)
 		const accel = this.computeAccel()
 		this.pos.update(accel, dt)
+		const [yawRot, pitchRot, rollRot] = this.computeRotationalAccels()
+		this.yaw.update(yawRot, dt)
+		this.pitch.update(pitchRot, dt)
+		this.roll.update(rollRot, dt)
 		const z = this.pos.getValue(2)
 		if (z.distance < 0) {
 			z.distance = 0
@@ -154,6 +159,16 @@ class Drone {
 		const drag = this.dragComputer.computeDrag(speed)
 		const total = sum(accelGrav, drag)
 		return total
+	}
+
+	computeRotationalAccels() {
+		const yawTorque = radius * (this.forces[0] - this.forces[1] + this.forces[2] - this.forces[3])
+		const pitchTorque = radius * (this.forces[0] + this.forces[1] - this.forces[2] - this.forces[3])
+		const rollTorque = radius * (this.forces[0] - this.forces[1] + this.forces[2] - this.forces[3])
+		const yawMoment = mass * radius * radius / 12
+		const pitchMoment = mass * radius * radius / 2
+		const rollMoment = mass * radius * radius / 2
+		return [yawTorque / yawMoment, pitchTorque / pitchMoment, rollTorque / rollMoment]
 	}
 
 	draw() {
@@ -258,7 +273,6 @@ class Propulsion {
 		const yawTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
 		const pitchTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
 		const rollTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
-		const radius = size * Math.sqrt(2) / 2
 		const a1 = zAccel / 4 + (rollTorque + pitchTorque + yawTorque) / (4 * mass * radius)
 		const a2 = zAccel / 4 + (rollTorque - pitchTorque - yawTorque) / (4 * mass * radius)
 		const a3 = zAccel / 4 + (-rollTorque - pitchTorque + yawTorque) / (4 * mass * radius)
