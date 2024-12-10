@@ -235,7 +235,8 @@ class Propulsion {
 
 	computePwm() {
 		const base = (maxPwm + minPwm) / 2
-		return base + this.heightComputer.compute(drone.pos[2])
+		const distances = drone.pos.getDistances()
+		return base + this.heightComputer.compute(distances[2])
 	}
 
 	isFinished() {
