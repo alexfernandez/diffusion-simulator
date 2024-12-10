@@ -13,7 +13,7 @@ const mass = 0.03
 // drone movement
 const maxAccel = 10
 const smoothScale = 5
-const pdWeights = [0.1, 0, 2]
+const pdWeights = [0.1, 0, 4]
 const pidWeights = [0.1, 0.001, 2]
 
 // screen
