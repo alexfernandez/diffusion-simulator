@@ -11,8 +11,8 @@ const size = 0.075
 const mass = 0.03
 
 // drone movement
-const g = 9.8
 const maxAccel = 10
+const smoothScale = 5
 
 // screen
 let updater, screen
@@ -32,6 +32,7 @@ window.onload = () => {
 
 function run() {
 	drone.delay = getParameter('delay')
+	drone.algorithm = getRadioButton('algorithm')
 	if (updater) return
 	updater = window.setInterval(() => {
 		update(dt)
@@ -65,6 +66,10 @@ function getParameter(name) {
 	return parseFloat(document.getElementById(name).value)
 }
 
+function getRadioButton(name) {
+	return document.querySelector(`input[name="${name}"]:checked`).value
+}
+
 function getCheckbox(name) {
 	return document.getElementById(name).checked
 }
@@ -96,6 +101,7 @@ class Drone {
 	target = 0
 	dragComputer = new DragComputer()
 	delay = 0
+	algorithm = 'none'
 
 	update(dt) {
 		this.accel = this.computeAccel()
@@ -109,6 +115,26 @@ class Drone {
 	}
 
 	computeAccel() {
+		const accel = this.computeByAlgorithm()
+		if (accel > maxAccel) {
+			return maxAccel
+		}
+		if (accel < -maxAccel) {
+			return -maxAccel
+		}
+		return accel
+	}
+
+	computeByAlgorithm() {
+		if (this.algorithm == 'naive') {
+			return this.computeNaive()
+		} else if (this.algorithm == 'smooth') {
+			return this.computeSmooth()
+		}
+		return 0
+	}
+
+	computeNaive() {
 		if (this.pos > this.target) {
 			return -maxAccel
 		}
@@ -116,6 +142,10 @@ class Drone {
 			return maxAccel
 		}
 		return 0
+	}
+
+	computeSmooth() {
+		return (this.target - this.pos) / smoothScale
 	}
 
 	draw() {
