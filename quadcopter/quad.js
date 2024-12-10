@@ -255,7 +255,6 @@ class Screen {
 	width = 0
 	height = 0
 	ctx = null
-	raw = null
 	updater = null
 	fontSize = 16
 	cameraPos = [0, -1, 1]
@@ -268,13 +267,11 @@ class Screen {
 		this.ctx = canvas.getContext('2d');
 		this.ctx.font = '16px sans-serif'
 		this.ctx.clearRect(0, 0, this.width, this.height)
-		//raw = ctx.getImageData(0, 0, width, height);
 	}
 
 	draw() {
 		this.ctx.clearRect(0, this.height, this.width, this.height + this.fontSize)
 		this.ctx.clearRect(0, 0, this.width, this.height)
-		//ctx.putImageData(raw, 0, 0);
 		drone.draw()
 		this.drawHorizon()
 		this.ctx.fillText(`t = ${time.toFixed(1)} s`, 50, this.height + this.fontSize - 1)
