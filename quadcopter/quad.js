@@ -18,6 +18,7 @@ const maxPwm = 255
 const maxSpeed = 5
 const separationSpeed = 5
 const maxSeparation = 4
+let yawTarget, pitchTarget, rollTarget
 
 // screen
 let updater, screen
@@ -36,9 +37,10 @@ window.onload = () => {
 }
 
 function run() {
-	drone.yaw = getDegrees('yaw')
-	drone.pitch = getDegrees('pitch')
-	drone.roll = getDegrees('roll')
+	yawTarget = getDegrees('yaw')
+	pitchTarget = getDegrees('pitch')
+	rollTarget = getDegrees('roll')
+
 	if (updater) return
 	updater = window.setInterval(() => {
 		update(dt)
@@ -105,9 +107,9 @@ function display([x, y, z]) {
 }
 
 class Drone {
-	pitch = 0.001 //Math.PI/8
-	yaw = 0 //Math.PI/8
-	roll = 0 //Math.PI/8
+	pitch = new AcceleratedDistance()
+	yaw = new AcceleratedDistance()
+	roll = new AcceleratedDistance()
 	pos = new AcceleratedVector()
 	brokenSeparation = 0
 	propulsion = new Propulsion()
@@ -144,7 +146,7 @@ class Drone {
 		const inertialAccel = this.convertToInertial([0, 0, accel])
 		const accelGrav = sum(inertialAccel, gravity)
 		const speed = this.pos.getSpeed()
-		const drag = this.dragComputer.compute(speed)
+		const drag = this.dragComputer.computeDrag(speed)
 		const total = sum(accelGrav, drag)
 		return total
 	}
@@ -179,12 +181,12 @@ class Drone {
 	}
 
 	convertToInertial([x, y, z]) {
-		const cy = Math.cos(this.yaw)
-		const sy = Math.sin(this.yaw)
-		const cp = Math.cos(-this.pitch)
-		const sp = Math.sin(-this.pitch)
-		const cr = Math.cos(this.roll)
-		const sr = Math.sin(this.roll)
+		const cy = Math.cos(this.yaw.distance)
+		const sy = Math.sin(this.yaw.distance)
+		const cp = Math.cos(-this.pitch.distance)
+		const sp = Math.sin(-this.pitch.distance)
+		const cr = Math.cos(this.roll.distance)
+		const sr = Math.sin(this.roll.distance)
 		const xp = x * cy*cp + y * (cy*sp*sr - sy*cr) + z * (cy*sp*cr + sy*sr)
 		const yp = x * sy*cp + y * (sy*sp*sr - cy*cr) + z * (sy*sp*cr - cy*sr)
 		const zp = - x * sp + y * (cp*sr) + z * (cp*cr)
@@ -204,24 +206,31 @@ class DragComputer {
 	density = 1.2
 	area = size * size
 
-	compute(speed) {
+	computeDrag(speed) {
 		const factor = -0.5 * this.density * this.cd * this.area / mass
 		return scale(speed, factor)
 	}
 }
 
 class Propulsion {
-	heightComputer = new PidComputer(1, [10, 0, 40])
+	heightComputer = new PidComputer(1, [1, 0, 4])
+	yawComputer = new PidComputer(yawTarget, [1, 0, 4])
+	pitchComputer = new PidComputer(pitchTarget, [1, 0, 4])
+	rollComputer = new PidComputer(rollTarget, [1, 0, 4])
 
 	computeForces(dt) {
-		const pwm = this.computeValidPwm(dt)
-		const value = (pwm - minPwm) / (maxPwm - minPwm)
-		const thrust = maxThrustPerMotor * g * value
-		return [thrust, thrust, thrust, thrust]
+		const pwms = this.computePwms(dt)
+		const thrusts = pwms.map(pwm => (pwm - minPwm) / (maxPwm - minPwm) * maxThrustPerMotor * g)
+		return thrusts
 	}
 
-	computeValidPwm() {
-		const pwm = this.computePwm()
+	computePwms(dt) {
+		const base = (maxPwm + minPwm) / 2
+		const accels = this.computeAccels(dt)
+		return accels.map(accel => this.computeValidPwm(base + accel * base))
+	}
+
+	computeValidPwm(pwm) {
 		if (pwm > maxPwm) {
 			return maxPwm
 		}
@@ -231,10 +240,18 @@ class Propulsion {
 		return Math.round(pwm)
 	}
 
-	computePwm() {
-		const base = (maxPwm + minPwm) / 2
+	computeAccels(dt) {
 		const distances = drone.pos.getDistances()
-		return base + this.heightComputer.compute(distances[2])
+		const zAccel = this.heightComputer.computePid(distances[2], dt)
+		const yawTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
+		const pitchTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
+		const rollTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
+		const radius = drone.size * Math.sqrt(2) / 2
+		const a1 = zAccel / 4 + (rollTorque + pitchTorque + yawTorque) / (4 * mass * radius)
+		const a2 = zAccel / 4 + (rollTorque - pitchTorque - yawTorque) / (4 * mass * radius)
+		const a3 = zAccel / 4 + (-rollTorque - pitchTorque + yawTorque) / (4 * mass * radius)
+		const a4 = zAccel / 4 + (-rollTorque + pitchTorque - yawTorque) / (4 * mass * radius)
+		return [a1, a2, a3, a4]
 	}
 
 	isFinished() {
@@ -253,18 +270,18 @@ class PidComputer {
 		this.pidWeights = weights
 	}
 
-	compute(processVariable) {
+	computePid(processVariable, dt) {
 		const error = this.setPoint - processVariable
 		const proportional = error
 		this.totalError += error
 		const integral = this.totalError
 		const derivative = error - this.lastError
 		this.lastError = error
-		return proportional * this.pidWeights[0] + integral * this.pidWeights[1] + derivative * this.pidWeights[2]
+		return dt * (proportional * this.pidWeights[0] + integral * this.pidWeights[1] + derivative * this.pidWeights[2])
 	}
 }
 
-class AcceleratedValue {
+class AcceleratedDistance {
 	distance = 0
 	speed = 0
 	accel = 0
@@ -283,7 +300,7 @@ class AcceleratedValue {
 }
 
 class AcceleratedVector {
-	acceleratedValues = [new AcceleratedValue(), new AcceleratedValue(), new AcceleratedValue()]
+	acceleratedValues = [new AcceleratedDistance(), new AcceleratedDistance(), new AcceleratedDistance()]
 
 	update(accelVector, dt) {
 		for (let index = 0; index < this.acceleratedValues.length; index++) {
