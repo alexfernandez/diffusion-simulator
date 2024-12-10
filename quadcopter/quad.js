@@ -155,7 +155,6 @@ class Drone {
 			screen.line3d(start, end, 'blue')
 		}
 		const distances = this.pos.getDistances()
-		console.log(`distances: ${distances}`)
 		const accel = this.pos.getAccel()
 		const accelEnd = sum(distances, this.convertToInertial(accel))
 		screen.line3d(distances, accelEnd, 'red')
@@ -174,7 +173,6 @@ class Drone {
 	convertEndpoint(endpoint) {
 		const inertial = this.convertToInertial(endpoint)
 		const distances = this.pos.getDistances()
-		console.log(`distances: ${distances}`)
 		const start = sum(distances, scale(inertial, this.brokenSeparation))
 		const end = sum(start, inertial)
 		return [start, end]
