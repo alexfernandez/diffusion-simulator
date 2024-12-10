@@ -12,7 +12,7 @@ const mass = 0.03
 
 // drone movement
 const maxAccel = 10
-const smoothScale = 5
+const smoothScale = 10
 
 // screen
 let updater, screen
@@ -145,7 +145,8 @@ class Drone {
 	}
 
 	computeSmooth() {
-		return (this.target - this.pos) / smoothScale
+		const diff = this.target - this.pos
+		return diff / smoothScale
 	}
 
 	draw() {
