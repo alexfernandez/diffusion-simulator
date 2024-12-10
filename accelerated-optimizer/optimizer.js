@@ -13,7 +13,8 @@ const mass = 0.03
 // drone movement
 const maxAccel = 10
 const smoothScale = 5
-const pidWeights = [0.1, 0.0001, 2]
+const pdWeights = [0.1, 0, 2]
+const pidWeights = [0.1, 0.001, 2]
 
 // screen
 let updater, screen
@@ -133,6 +134,8 @@ class Drone {
 			return this.computeNaive()
 		} else if (this.algorithm == 'smooth') {
 			return this.computeSmooth()
+		} else if (this.algorithm == 'pd') {
+			return this.computePid(pdWeights)
 		} else if (this.algorithm == 'pid') {
 			return this.computePid()
 		}
@@ -154,14 +157,14 @@ class Drone {
 		return diff / smoothScale
 	}
 
-	computePid() {
+	computePid(weights = pidWeights) {
 		const error = this.target - this.pos
 		const proportional = error
 		this.errorSum += error
 		const integral = this.errorSum
 		const derivative = error - this.lastError
 		this.lastError = error
-		return proportional * pidWeights[0] + integral * pidWeights[1] + derivative * pidWeights[2]
+		return proportional * weights[0] + integral * weights[1] + derivative * weights[2]
 	}
 
 	draw() {
