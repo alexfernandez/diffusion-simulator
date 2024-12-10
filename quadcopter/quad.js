@@ -108,9 +108,7 @@ class Drone {
 	pitch = 0.001 //Math.PI/8
 	yaw = 0 //Math.PI/8
 	roll = 0 //Math.PI/8
-	pos = [0, 0, 0]
-	speed = [0, 0, 0]
-	accel = [0, 0, 0]
+	pos = new AcceleratedVector()
 	brokenSeparation = 0
 	propulsion = new Propulsion()
 	dragComputer = new DragComputer()
@@ -120,23 +118,21 @@ class Drone {
 			return this.computeBroken(dt)
 		}
 		const forces = this.propulsion.computeForces(dt)
-		this.accel = this.computeAccel(forces)
-		const newSpeed = sum(scale(this.accel, dt), this.speed)
-		const newPos = sum(scale(newSpeed, dt), this.pos)
-		if (newPos[2] < 0) {
-			newPos[2] = 0
-			console.log(`crash: ${newSpeed[2]} > ${maxSpeed}?`)
-			if (Math.abs(newSpeed[2]) > maxSpeed) {
+		const accel = this.computeAccel(forces)
+		this.pos.update(accel, dt)
+		const z = this.pos.getValue(2)
+		if (z.distance < 0) {
+			z.distance = 0
+			console.log(`crash: ${z.speed} > ${maxSpeed}?`)
+			if (Math.abs(z.speed) > maxSpeed) {
 				console.log(`leñaso`)
 				this.brokenSeparation = dt
 			}
-			newSpeed[2] = 0
+			z.speed = 0
 		}
-		this.pos = newPos
-		this.speed = newSpeed
 		console.log(`time: ${time.toFixed(1)}`)
-		console.log(`speed: ${this.speed}`)
-		console.log(`accel: ${this.accel}`)
+		console.log(`speed: ${this.pos.getSpeed()}`)
+		console.log(`accel: ${this.pos.getAccel()}`)
 	}
 
 	computeBroken(dt) {
@@ -147,7 +143,8 @@ class Drone {
 		const accel = forces.reduce((a, b) => a + b) / mass
 		const inertialAccel = this.convertToInertial([0, 0, accel])
 		const accelGrav = sum(inertialAccel, gravity)
-		const drag = this.dragComputer.compute(this.speed)
+		const speed = this.pos.getSpeed()
+		const drag = this.dragComputer.compute(speed)
 		const total = sum(accelGrav, drag)
 		return total
 	}
@@ -157,8 +154,11 @@ class Drone {
 		for (const [start, end] of segments) {
 			screen.line3d(start, end, 'blue')
 		}
-		const posAccel = sum(this.pos, this.convertToInertial(this.accel))
-		screen.line3d(this.pos, posAccel, 'red')
+		const distances = this.pos.getDistances()
+		console.log(`distances: ${distances}`)
+		const accel = this.pos.getAccel()
+		const accelEnd = sum(distances, this.convertToInertial(accel))
+		screen.line3d(distances, accelEnd, 'red')
 	}
 
 	computeSegments() {
@@ -173,7 +173,9 @@ class Drone {
 
 	convertEndpoint(endpoint) {
 		const inertial = this.convertToInertial(endpoint)
-		const start = sum(this.pos, scale(inertial, this.brokenSeparation))
+		const distances = this.pos.getDistances()
+		console.log(`distances: ${distances}`)
+		const start = sum(distances, scale(inertial, this.brokenSeparation))
 		const end = sum(start, inertial)
 		return [start, end]
 	}
@@ -263,6 +265,52 @@ class PidComputer {
 	}
 }
 
+class AcceleratedValue {
+	distance = 0
+	speed = 0
+	accel = 0
+
+	constructor(initial = 0) {
+		this.distance = initial
+	}
+
+	update(accel, dt) {
+		this.accel = accel
+		const newSpeed = this.speed + this.accel * dt
+		const newDistance = this.distance + newSpeed * dt
+		this.distance = newDistance
+		this.speed = newSpeed
+	}
+}
+
+class AcceleratedVector {
+	acceleratedValues = [new AcceleratedValue(), new AcceleratedValue(), new AcceleratedValue()]
+
+	update(accelVector, dt) {
+		for (let index = 0; index < this.acceleratedValues.length; index++) {
+			const value = this.acceleratedValues[index]
+			const accel = accelVector[index]
+			value.update(accel, dt)
+		}
+	}
+
+	getDistances() {
+		return this.acceleratedValues.map(accelerated => accelerated.distance)
+	}
+
+	getSpeed() {
+		return this.acceleratedValues.map(accelerated => accelerated.speed)
+	}
+
+	getAccel() {
+		return this.acceleratedValues.map(accelerated => accelerated.accel)
+	}
+
+	getValue(index) {
+		return this.acceleratedValues[index]
+	}
+}
+
 class Screen {
 	width = 0
 	height = 0
@@ -287,9 +335,9 @@ class Screen {
 		drone.draw()
 		this.drawHorizon()
 		this.ctx.fillText(`t = ${time.toFixed(1)} s`, 50, this.height + this.fontSize - 1)
-		this.ctx.fillText(`pos = ${display(drone.pos)}`, 200, this.height + this.fontSize - 1)
-		this.ctx.fillText(`vel = ${display(drone.speed)}`, 400, this.height + this.fontSize - 1)
-		this.ctx.fillText(`acc = ${display(drone.accel)}`, 600, this.height + this.fontSize - 1)
+		this.ctx.fillText(`pos = ${display(drone.pos.getDistances())}`, 200, this.height + this.fontSize - 1)
+		this.ctx.fillText(`vel = ${display(drone.pos.getSpeed())}`, 400, this.height + this.fontSize - 1)
+		this.ctx.fillText(`acc = ${display(drone.pos.getAccel())}`, 600, this.height + this.fontSize - 1)
 	}
 
 	drawHorizon() {
