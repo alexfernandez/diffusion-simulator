@@ -119,7 +119,8 @@ class Drone {
 		if (this.brokenSeparation) {
 			return this.computeBroken(dt)
 		}
-		this.accel = this.computeAccel()
+		const forces = this.propulsion.computeForces(dt)
+		this.accel = this.computeAccel(forces)
 		const newSpeed = sum(scale(this.accel, dt), this.speed)
 		const newPos = sum(scale(newSpeed, dt), this.pos)
 		if (newPos[2] < 0) {
@@ -142,8 +143,8 @@ class Drone {
 		this.brokenSeparation += separationSpeed * dt
 	}
 
-	computeAccel() {
-		const accel = this.propulsion.computeForce(dt) / mass
+	computeAccel(forces) {
+		const accel = forces.reduce((a, b) => a + b) / mass
 		const inertialAccel = this.convertToInertial([0, 0, accel])
 		const accelGrav = sum(inertialAccel, gravity)
 		const drag = this.dragComputer.compute(this.speed)
@@ -210,16 +211,13 @@ class DragComputer {
 }
 
 class Propulsion {
-	pidWeights = [10, 0, 40]
-	totalError = 0
-	lastError = 0
-	targetZ = 1
+	heightComputer = new PidComputer(1, [10, 0, 40])
 
-	computeForce(dt) {
+	computeForces(dt) {
 		const pwm = this.computeValidPwm(dt)
 		const value = (pwm - minPwm) / (maxPwm - minPwm)
 		const thrust = maxThrustPerMotor * g * value
-		return 4 * thrust
+		return [thrust, thrust, thrust, thrust]
 	}
 
 	computeValidPwm() {
@@ -235,17 +233,33 @@ class Propulsion {
 
 	computePwm() {
 		const base = (maxPwm + minPwm) / 2
-		const error = this.targetZ - drone.pos[2]
+		return base + this.heightComputer.compute(drone.pos[2])
+	}
+
+	isFinished() {
+		return time > 30
+	}
+}
+
+class PidComputer {
+	pidWeights = [0, 0, 0]
+	totalError = 0
+	lastError = 0
+	setPoint = 0
+
+	constructor(setPoint, weights) {
+		this.setPoint = setPoint
+		this.pidWeights = weights
+	}
+
+	compute(processVariable) {
+		const error = this.setPoint - processVariable
 		const proportional = error
 		this.totalError += error
 		const integral = this.totalError
 		const derivative = error - this.lastError
 		this.lastError = error
-		return base + proportional * this.pidWeights[0] + integral * this.pidWeights[1] + derivative * this.pidWeights[2]
-	}
-
-	isFinished() {
-		return time > 30
+		return proportional * this.pidWeights[0] + integral * this.pidWeights[1] + derivative * this.pidWeights[2]
 	}
 }
 
