@@ -182,7 +182,7 @@ class Drone {
 			if (force) {
 				const forceVector = this.convertToInertial([0, 0, force])
 				const forceEnd = sum(end, forceVector)
-				screen.line3d(end, forceEnd, 'red')
+				screen.line3d(end, forceEnd, 'brown')
 			}
 		}
 		const accelEnd = sum(distances, this.convertToInertial(accel))
@@ -271,8 +271,8 @@ class Propulsion {
 		const distances = drone.pos.getDistances()
 		const zAccel = this.heightComputer.computePid(distances[2], dt)
 		const yawTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
-		const pitchTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
-		const rollTorque = this.yawComputer.computePid(drone.yaw.distance, dt)
+		const pitchTorque = this.pitchComputer.computePid(drone.pitch.distance, dt)
+		const rollTorque = this.rollComputer.computePid(drone.roll.distance, dt)
 		const a1 = zAccel / 4 + (rollTorque + pitchTorque + yawTorque) / (4 * mass * radius)
 		const a2 = zAccel / 4 + (rollTorque - pitchTorque - yawTorque) / (4 * mass * radius)
 		const a3 = zAccel / 4 + (-rollTorque - pitchTorque + yawTorque) / (4 * mass * radius)
