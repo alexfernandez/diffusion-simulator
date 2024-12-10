@@ -31,9 +31,7 @@ window.onload = () => {
 }
 
 function run() {
-	drone.yaw = getDegrees('yaw')
-	drone.pitch = getDegrees('pitch')
-	drone.roll = getDegrees('roll')
+	drone.delay = getParameter('delay')
 	if (updater) return
 	updater = window.setInterval(() => {
 		update(dt)
@@ -61,10 +59,6 @@ function resetSimulation() {
 	time = 0
 	drone = new Drone()
 	console.log('reset')
-}
-
-function getDegrees(name) {
-	return getParameter(name) * Math.PI / 180
 }
 
 function getParameter(name) {
@@ -101,6 +95,7 @@ class Drone {
 	pos = 40
 	target = 0
 	dragComputer = new DragComputer()
+	delay = 0
 
 	update(dt) {
 		this.accel = this.computeAccel()
