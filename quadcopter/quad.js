@@ -118,13 +118,14 @@ class Drone {
 	brokenSeparation = 0
 	propulsion = new Propulsion()
 	dragComputer = new DragComputer()
+	forces = []
 
 	update(dt) {
 		if (this.brokenSeparation) {
 			return this.computeBroken(dt)
 		}
-		const forces = this.propulsion.computeForces(dt)
-		const accel = this.computeAccel(forces)
+		this.forces = this.propulsion.computeForces(dt)
+		const accel = this.computeAccel()
 		this.pos.update(accel, dt)
 		const z = this.pos.getValue(2)
 		if (z.distance < 0) {
@@ -145,8 +146,8 @@ class Drone {
 		this.brokenSeparation += separationSpeed * dt
 	}
 
-	computeAccel(forces) {
-		const accel = forces.reduce((a, b) => a + b) / mass
+	computeAccel() {
+		const accel = this.forces.reduce((a, b) => a + b) / mass
 		const inertialAccel = this.convertToInertial([0, 0, accel])
 		const accelGrav = sum(inertialAccel, gravity)
 		const speed = this.pos.getSpeed()
@@ -156,12 +157,19 @@ class Drone {
 	}
 
 	draw() {
-		const segments = this.computeSegments()
-		for (const [start, end] of segments) {
-			screen.line3d(start, end, 'blue')
-		}
 		const distances = this.pos.getDistances()
 		const accel = this.pos.getAccel()
+		const segments = this.computeSegments()
+		for (let index = 0; index < segments.length; index++) {
+			const [start, end] = segments[index]
+			screen.line3d(start, end, 'blue')
+			const force = this.forces[index]
+			if (force) {
+				const forceVector = this.convertToInertial([0, 0, force])
+				const forceEnd = sum(end, forceVector)
+				screen.line3d(end, forceEnd, 'red')
+			}
+		}
 		const accelEnd = sum(distances, this.convertToInertial(accel))
 		screen.line3d(distances, accelEnd, 'red')
 	}
