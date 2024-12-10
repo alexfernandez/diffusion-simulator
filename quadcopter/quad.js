@@ -271,9 +271,6 @@ class Screen {
 		//raw = ctx.getImageData(0, 0, width, height);
 	}
 
-	clear() {
-	}
-
 	draw() {
 		this.ctx.clearRect(0, this.height, this.width, this.height + this.fontSize)
 		this.ctx.clearRect(0, 0, this.width, this.height)
