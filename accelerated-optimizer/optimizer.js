@@ -156,7 +156,7 @@ class Drone {
 	}
 
 	isFinished() {
-		return false
+		return time * timeScale > screen.width
 	}
 }
 
