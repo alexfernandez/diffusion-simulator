@@ -210,44 +210,42 @@ class DragComputer {
 }
 
 class Propulsion {
-	intervals = [[5, 192], [2, 187], [6, 193], [2, 128]]
-	currentInterval = 0
-	pending = 0
-	constructor() {
-		this.computePending()
-	}
-
-	getInterval() {
-		return this.intervals[this.currentInterval]
-	}
-
-	computePending() {
-		const interval = this.getInterval()
-		this.pending = interval[0] || 0
-	}
+	pidWeights = [10, 0, 40]
+	totalError = 0
+	lastError = 0
+	targetZ = 1
 
 	computeForce(dt) {
-		const pwm = this.computePwm(dt)
+		const pwm = this.computeValidPwm(dt)
 		const value = (pwm - minPwm) / (maxPwm - minPwm)
 		const thrust = maxThrustPerMotor * g * value
 		return 4 * thrust
 	}
 
-	computePwm(dt) {
-		this.pending -= dt
-		if (this.pending < 0) {
-			this.currentInterval += 1
-			if (this.isFinished()) {
-				return 0
-			}
-			this.computePending()
+	computeValidPwm() {
+		const pwm = this.computePwm()
+		if (pwm > maxPwm) {
+			return maxPwm
 		}
-		const interval = this.getInterval()
-		return interval[1]
+		if (pwm < minPwm) {
+			return minPwm
+		}
+		return Math.round(pwm)
+	}
+
+	computePwm() {
+		const base = (maxPwm + minPwm) / 2
+		const error = this.targetZ - drone.pos[2]
+		const proportional = error
+		this.totalError += error
+		const integral = this.totalError
+		const derivative = error - this.lastError
+		this.lastError = error
+		return base + proportional * this.pidWeights[0] + integral * this.pidWeights[1] + derivative * this.pidWeights[2]
 	}
 
 	isFinished() {
-		return this.currentInterval >= this.intervals.length
+		return time > 30
 	}
 }
 
