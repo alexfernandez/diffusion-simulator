@@ -14,7 +14,8 @@ const mass = 0.03
 const maxAccel = 10
 const smoothScale = 5
 const pdWeights = [0.1, 0, 4]
-const pidWeights = [0.1, 0.001, 2]
+const piWeights = [0.1, 0.1, 0]
+const pidWeights = [0.1, 0.02, 2]
 
 // screen
 let updater, screen
