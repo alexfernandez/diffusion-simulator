@@ -25,16 +25,20 @@ class Drone {
 	dragComputer = new DragComputer()
 	wind = new Wind()
 	forces = []
+	motorFactors = new Array(4)
 
 	constructor(heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.propulsion = new Propulsion(this, heightTarget, yawTarget, pitchTarget, rollTarget)
+		for (let index = 0; index < this.motorFactors.length; index++) {
+			this.motorFactors[index] = 1 + (Math.random() - 0.5) * motorImprecisionPercent / 100
+		}
 	}
 
 	update(dt) {
 		if (this.brokenSeparation) {
 			return this.computeBroken(dt)
 		}
-		this.forces = this.propulsion.computeForces(dt)
+		this.forces = this.computeForces(dt)
 		const accel = this.computeAccel()
 		this.pos.update(accel, dt)
 		const [yawRot, pitchRot, rollRot] = this.computeRotationalAccels()
@@ -56,6 +60,14 @@ class Drone {
 
 	computeBroken(dt) {
 		this.brokenSeparation += separationSpeed * dt
+	}
+
+	computeForces(dt) {
+		const forces = this.propulsion.computeForces(dt)
+		for (let index = 0; index < forces.length; index++) {
+			forces[index] *= this.motorFactors[index]
+		}
+		return forces
 	}
 
 	computeAccel() {
@@ -207,8 +219,12 @@ class Propulsion {
 
 	computeForces(dt) {
 		const pwms = this.computePwms(dt)
-		const thrusts = pwms.map(pwm => (pwm - minPwm) / (maxPwm - minPwm) * maxThrustPerMotor * g)
-		return thrusts
+		return pwms.map(pwm => this.convertPwmToThrust(pwm))
+	}
+
+	convertPwmToThrust(pwm) {
+		const rescaledPwm = (pwm - minPwm) / (maxPwm - minPwm)
+		return rescaledPwm * maxThrustPerMotor * g
 	}
 
 	computePwms(dt) {
