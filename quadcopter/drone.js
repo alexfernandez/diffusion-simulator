@@ -150,9 +150,9 @@ class Propulsion {
 	constructor(drone, heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.drone = drone
 		this.heightComputer = new PidComputer(heightTarget, [1, 0, 4])
-		this.yawComputer = new PidComputer(yawTarget, [0.001, 0, 0.0004])
-		this.pitchComputer = new PidComputer(pitchTarget, [0.001, 0, 0.0004])
-		this.rollComputer = new PidComputer(rollTarget, [0.001, 0, 0.0004])
+		this.yawComputer = new PidComputer(yawTarget, [0.0001, 0, 0.0004])
+		this.pitchComputer = new PidComputer(pitchTarget, [0.0001, 0, 0.0004])
+		this.rollComputer = new PidComputer(rollTarget, [0.0001, 0, 0.0004])
 	}
 
 	computeForces(dt) {
