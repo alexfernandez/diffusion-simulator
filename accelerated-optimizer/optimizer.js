@@ -106,10 +106,11 @@ class Drone {
 	delay = 0
 	lastError = 0
 	errorSum = 0
+	errorInterval = 0
 	algorithm = 'none'
 
 	update(dt) {
-		this.accel = this.computeAccel()
+		this.accel = this.computeAccel(dt)
 		const newSpeed = this.speed + dt * this.accel
 		const newPos = this.pos + dt * newSpeed
 		this.pos = newPos
@@ -119,8 +120,8 @@ class Drone {
 		console.log(`accel: ${this.accel}`)
 	}
 
-	computeAccel() {
-		const accel = this.computeByAlgorithm()
+	computeAccel(dt) {
+		const accel = this.computeByAlgorithm(dt)
 		if (accel > maxAccel) {
 			return maxAccel
 		}
@@ -130,15 +131,17 @@ class Drone {
 		return accel
 	}
 
-	computeByAlgorithm() {
+	computeByAlgorithm(dt) {
 		if (this.algorithm == 'naive') {
 			return this.computeNaive()
 		} else if (this.algorithm == 'smooth') {
 			return this.computeSmooth()
+		} else if (this.algorithm == 'pi') {
+			return this.computePid(dt, piWeights)
 		} else if (this.algorithm == 'pd') {
-			return this.computePid(pdWeights)
+			return this.computePid(dt, pdWeights)
 		} else if (this.algorithm == 'pid') {
-			return this.computePid()
+			return this.computePid(dt)
 		}
 		return 0
 	}
@@ -158,11 +161,12 @@ class Drone {
 		return diff / smoothScale
 	}
 
-	computePid(weights = pidWeights) {
+	computePid(dt, weights = pidWeights) {
 		const error = this.target - this.pos
 		const proportional = error
 		this.errorSum += error
-		const integral = this.errorSum
+		this.errorInterval += dt
+		const integral = this.errorSum / this.errorInterval
 		const derivative = error - this.lastError
 		this.lastError = error
 		return proportional * weights[0] + integral * weights[1] + derivative * weights[2]
