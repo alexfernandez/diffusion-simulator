@@ -7,7 +7,7 @@ let time = 0
 // drone characterization
 let drone
 const heightTarget = 1
-let yawTarget, pitchTarget, rollTarget
+let yawTarget, pitchTarget, rollTarget, windActive
 
 // screen
 let updater, screen
@@ -60,6 +60,7 @@ function readParameters() {
 	yawTarget = getDegrees('yaw')
 	pitchTarget = getDegrees('pitch')
 	rollTarget = getDegrees('roll')
+	windActive = getCheckbox('wind')
 }
 
 function getDegrees(name) {

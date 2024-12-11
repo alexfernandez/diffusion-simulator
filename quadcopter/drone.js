@@ -14,7 +14,6 @@ const maxPwm = 255
 const maxSpeed = 5
 const separationSpeed = 5
 const maxSeparation = 4
-const windActive = false
 
 
 class Drone {
@@ -79,9 +78,9 @@ class Drone {
 		const yawMoment = mass * radius * radius / 12
 		const pitchMoment = mass * radius * radius / 2
 		const rollMoment = mass * radius * radius / 2
-		const yawWind = (this.wind.strength[0] + this.wind.strength[1]) / 20
-		const pitchWind = this.wind.strength[1] / 40
-		const rollWind = this.wind.strength[2] / 40
+		const yawWind = (this.wind.strength[0] + this.wind.strength[1]) / 80
+		const pitchWind = this.wind.strength[1] / 80
+		const rollWind = this.wind.strength[2] / 80
 		return [yawTorque / yawMoment + yawWind, pitchTorque / pitchMoment + pitchWind, rollTorque / rollMoment + rollWind]
 	}
 
