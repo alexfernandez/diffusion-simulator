@@ -121,6 +121,10 @@ class Screen {
 	}
 
 	line3d(pos1, pos2, color) {
+		if (pos1[1] < this.cameraPos[1] || pos2[1] < this.cameraPos[1]) {
+			// behind the camera
+			return
+		}
 		const point1 = this.convert3d(pos1)
 		const point2 = this.convert3d(pos2)
 		this.line2d(point1, point2, color)
