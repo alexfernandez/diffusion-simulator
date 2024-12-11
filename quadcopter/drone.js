@@ -62,10 +62,11 @@ class Drone {
 	computeAccel() {
 		const accel = this.forces.reduce((a, b) => a + b) / mass
 		const inertialAccel = this.convertToInertial([0, 0, accel])
-		const accelGrav = sum(inertialAccel, gravity)
+		const withGrav = sum(inertialAccel, gravity)
+		const withWind = sum(withGrav, this.wind.strength)
 		const speed = this.pos.getSpeed()
 		const drag = this.dragComputer.computeDrag(speed)
-		const totalAccel = sum(accelGrav, drag)
+		const totalAccel = sum(withWind, drag)
 		return totalAccel
 	}
 
@@ -139,10 +140,11 @@ class Drone {
 
 class Wind {
 	strength = [0, 0, 0]
-	maxStrength = [1, 1, 0.2]
-	randomWalk = [1, 1, 0.2]
+	maxStrength = [0.1, 0.1, 0.01]
+	randomWalk = [0.1, 0.1, 0.02]
 	maxPoleLength = 0.5
 	pole = new AcceleratedVector([0, 0, -this.maxPoleLength])
+	drawingScale = 3
 
 	update(dt) {
 		for (let index = 0; index < this.strength.length; index++) {
@@ -153,8 +155,7 @@ class Wind {
 				this.strength[index] = -this.maxStrength[index]
 			}
 		}
-		console.log(this.strength)
-		this.pole.update(sum(scale(this.strength, 3), gravity), dt)
+		this.pole.update(sum(scale(this.strength, this.drawingScale), gravity), dt)
 		const distances = this.pole.getDistances()
 		const length = Math.sqrt(distances[0] * distances[0] + distances[1] * distances[1] + distances[2] * distances[2])
 		if (length > this.maxPoleLength) {
