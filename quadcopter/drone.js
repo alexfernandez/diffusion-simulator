@@ -319,14 +319,17 @@ class AcceleratedVector {
 	}
 }
 
-function sum([x1, y1, z1], [x2, y2, z2]) {
-	if (x1 === undefined) {
-		throw Error(`Bad vector1 for sum: ${x1}`)
+function sum(...args) {
+	const addition = [0, 0, 0]
+	for (const arg of args) {
+		if (arg[0] === undefined) {
+			throw Error(`Bad vector for sum: ${arg}`)
+		}
+		for (let index = 0; index < addition.length; index++) {
+			addition[index] += arg[index]
+		}
 	}
-	if (x2 === undefined) {
-		throw Error(`Bad vector2 for sum: ${x2}`)
-	}
-	return [x1 + x2, y1 + y2, z1 + z2]
+	return addition
 }
 
 function scale([x, y, z], factor) {
