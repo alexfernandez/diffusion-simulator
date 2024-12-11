@@ -36,11 +36,9 @@ class Drone {
 			return this.computeBroken(dt)
 		}
 		this.forces = this.propulsion.computeForces(dt)
-		console.log(`forces: ${this.forces}`)
 		const accel = this.computeAccel()
 		this.pos.update(accel, dt)
 		const [yawRot, pitchRot, rollRot] = this.computeRotationalAccels()
-		console.log(yawRot, pitchRot, rollRot)
 		this.yaw.update(yawRot, dt)
 		this.pitch.update(pitchRot, dt)
 		this.roll.update(rollRot, dt)
@@ -203,9 +201,9 @@ class Propulsion {
 	constructor(drone, heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.drone = drone
 		this.heightComputer = new PidComputer(heightTarget, [1, 0, 4])
-		this.yawComputer = new PidComputer(yawTarget, [0.001, 0, 0.0004])
-		this.pitchComputer = new PidComputer(pitchTarget, [0.001, 0, 0.0004])
-		this.rollComputer = new PidComputer(rollTarget, [0.001, 0, 0.0004])
+		this.yawComputer = new PidComputer(yawTarget, [0.0001, 0, 0.00004])
+		this.pitchComputer = new PidComputer(pitchTarget, [0.0001, 0, 0.00004])
+		this.rollComputer = new PidComputer(rollTarget, [0.0001, 0, 0.00004])
 	}
 
 	computeForces(dt) {
@@ -232,10 +230,10 @@ class Propulsion {
 
 	computeAccels(dt) {
 		const distances = this.drone.pos.getDistances()
-		const zAccel = this.heightComputer.computePid(distances[2], dt)
-		const yawTorque = this.yawComputer.computePid(this.drone.yaw.distance, dt)
-		const pitchTorque = this.pitchComputer.computePid(this.drone.pitch.distance, dt)
-		const rollTorque = this.rollComputer.computePid(this.drone.roll.distance, dt)
+		const zAccel = this.heightComputer.computePid(distances[2])
+		const yawTorque = this.yawComputer.computePid(this.drone.yaw.distance)
+		const pitchTorque = this.pitchComputer.computePid(this.drone.pitch.distance)
+		const rollTorque = this.rollComputer.computePid(this.drone.roll.distance)
 		const a1 = zAccel / 4 + (rollTorque + pitchTorque + yawTorque) / (4 * mass * radius)
 		const a2 = zAccel / 4 + (rollTorque - pitchTorque - yawTorque) / (4 * mass * radius)
 		const a3 = zAccel / 4 + (-rollTorque - pitchTorque + yawTorque) / (4 * mass * radius)
@@ -259,14 +257,14 @@ class PidComputer {
 		this.pidWeights = weights
 	}
 
-	computePid(processVariable, dt) {
+	computePid(processVariable) {
 		const error = this.setPoint - processVariable
 		const proportional = error
 		this.totalError += error
 		const integral = this.totalError
 		const derivative = error - this.lastError
 		this.lastError = error
-		return dt * (proportional * this.pidWeights[0] + integral * this.pidWeights[1] + derivative * this.pidWeights[2])
+		return proportional * this.pidWeights[0] + integral * this.pidWeights[1] + derivative * this.pidWeights[2]
 	}
 }
 
