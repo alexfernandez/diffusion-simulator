@@ -62,13 +62,15 @@ class Drone {
 
 	computeAccel() {
 		const accel = this.forces.reduce((a, b) => a + b) / mass
-		const inertialAccel = this.convertToInertial([0, 0, accel])
-		const withGrav = sum(inertialAccel, gravity)
-		const withWind = sum(withGrav, this.wind.strength)
 		const speed = this.pos.getSpeed()
 		const drag = this.dragComputer.computeDrag(speed)
-		const totalAccel = sum(withWind, drag)
-		return totalAccel
+		const inertialAccel = this.convertToInertial([0, 0, accel])
+		return sum(
+			inertialAccel,
+			gravity,
+			this.wind.strength,
+			drag
+		)
 	}
 
 	computeRotationalAccels() {
