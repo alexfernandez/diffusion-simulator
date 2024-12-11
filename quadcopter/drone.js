@@ -14,6 +14,7 @@ const maxPwm = 255
 const maxSpeed = 5
 const separationSpeed = 5
 const maxSeparation = 4
+const windActive = false
 
 
 class Drone {
@@ -153,6 +154,9 @@ class Wind {
 	drawingScale = 3
 
 	update(dt) {
+		if (!windActive) {
+			return
+		}
 		for (let index = 0; index < this.strength.length; index++) {
 			this.strength[index] = this.strength[index] + this.randomWalk[index] * (Math.random() - 0.5) * dt
 			if (this.strength[index] > this.maxStrength[index]) {
