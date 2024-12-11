@@ -15,6 +15,7 @@ const maxSpeed = 5
 const separationSpeed = 5
 const maxSeparation = 4
 
+
 class Drone {
 	yaw = new AcceleratedDistance()
 	pitch = new AcceleratedDistance()
@@ -22,6 +23,7 @@ class Drone {
 	pos = new AcceleratedVector()
 	brokenSeparation = 0
 	dragComputer = new DragComputer()
+	wind = new Wind()
 	forces = []
 
 	constructor(heightTarget, yawTarget, pitchTarget, rollTarget) {
@@ -52,6 +54,7 @@ class Drone {
 		}
 		console.log(`speed: ${this.pos.getSpeed()}`)
 		console.log(`accel: ${this.pos.getAccel()}`)
+		this.wind.update(dt)
 	}
 
 	computeBroken(dt) {
@@ -94,6 +97,7 @@ class Drone {
 		}
 		const accelEnd = sum(distances, this.convertToInertial(accel))
 		screen.line3d(distances, accelEnd, 'red')
+		this.wind.draw()
 	}
 
 	computeSegments() {
@@ -132,6 +136,43 @@ class Drone {
 			return true
 		}
 		return this.propulsion.isFinished(time)
+	}
+}
+
+class Wind {
+	strength = [0, 0, 0]
+	maxStrength = [0.5, 0.5, 0.1]
+	randomWalk = [0.001, 0.001, 0.0001]
+	pole = new AcceleratedVector()
+	maxPoleLength = 0.5
+
+	update(dt) {
+		for (let index = 0; index < this.strength.length; index++) {
+			this.strength[index] = this.strength[index] + this.randomWalk[index] * Math.random() * dt
+			if (this.strength[index] > this.maxStrength[index]) {
+				this.strength[index] = this.maxStrength[index]
+			} else if (this.strength[index] < -this.maxStrength[index]) {
+				this.strength[index] = -this.maxStrength[index]
+			}
+		}
+		this.pole.update(sum(this.strength, gravity), dt)
+		const distances = this.pole.getDistances()
+		const length = Math.sqrt(distances[0] * distances[0] + distances[1] * distances[1] + distances[2] * distances[2])
+		if (length > this.maxPoleLength) {
+			const ratio = this.maxPoleLength / length
+			for (let index = 0; index < this.strength.length; index++) {
+				const value = this.pole.getValue(index)
+				value.distance /= ratio
+				value.speed = 0
+			}
+		}
+	}
+
+
+	draw() {
+		const start = [-1.5, 0, 2]
+		const end = sum(start, this.pole.getDistances())
+		screen.line3d(start, end, 'green')
 	}
 }
 
