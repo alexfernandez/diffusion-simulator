@@ -13,9 +13,7 @@ const mass = 0.03
 // drone movement
 const maxAccel = 10
 const smoothScale = 5
-const pdWeights = [0.1, 0, 0.6]
-const piWeights = [0.1, 0.005, 0]
-const pidWeights = [0.1, 0.02, 0.2]
+const pidWeights = [0, 0, 0]
 
 // screen
 let updater, screen
@@ -24,45 +22,35 @@ window.onload = () => {
 	screen = new Screen()
 	resetSimulation()
 	screen.clear()
-	if (getCheckbox('autorun')) {
-		console.log('running')
-		run()
-	}
+	console.log('running')
+	run()
 	document.getElementById('run').onclick = run
-	document.getElementById('pause').onclick = pause
-	document.getElementById('reset').onclick = reset
+	document.getElementById('pvalue').oninput = resetSimulation
+	document.getElementById('ivalue').oninput = resetSimulation
+	document.getElementById('dvalue').oninput = resetSimulation
 }
 
 function run() {
 	drone.delay = getParameter('delay')
 	drone.algorithm = getRadioButton('algorithm')
+	pidWeights[0] = getParameter('pvalue')
+	pidWeights[1] = getParameter('ivalue')
+	pidWeights[2] = getParameter('dvalue')
+	console.log(`pid weights: ${pidWeights}`)
 	if (updater) return
-	updater = window.setInterval(() => {
+	while (time * timeScale < screen.width) {
 		update(dt)
 		screen.draw()
-		if (drone.isFinished()) {
-			pause()
-		}
-	}, dt * 1000)
-}
-
-function pause() {
-	if (!updater) return
-	window.clearInterval(updater)
-	updater = null
-}
-
-function reset() {
-	pause()
-	resetSimulation()
-	screen.clear()
+	}
 }
 
 function resetSimulation() {
 	console.log('resetting')
+	screen.clear()
 	time = 0
 	drone = new Drone()
 	console.log('reset')
+	run()
 }
 
 function getParameter(name) {
@@ -71,10 +59,6 @@ function getParameter(name) {
 
 function getRadioButton(name) {
 	return document.querySelector(`input[name="${name}"]:checked`).value
-}
-
-function getCheckbox(name) {
-	return document.getElementById(name).checked
 }
 
 function update(dt) {
@@ -116,7 +100,6 @@ class Drone {
 		const newPos = this.pos + dt * newSpeed
 		this.pos = newPos
 		this.speed = newSpeed
-		console.log(`time: ${time.toFixed(1)}`)
 	}
 
 	computeAccel(dt) {
@@ -165,10 +148,9 @@ class Drone {
 		const proportional = error
 		this.errorSum += error
 		this.errorInterval += dt
-		const integral = this.errorSum / this.errorInterval
+		const integral = this.errorSum / this.errorInterval / 10
 		const derivative = (error - this.lastError) / dt
 		this.lastError = error
-		console.log(`pid: ${proportional} * ${weights[0]} + ${integral} * ${weights[1]} + ${derivative} * ${weights[2]}`)
 		return proportional * weights[0] + integral * weights[1] + derivative * weights[2]
 	}
 
@@ -207,10 +189,6 @@ class Drone {
 		const yp = x * sy*cp + y * (sy*sp*sr - cy*cr) + z * (sy*sp*cr - cy*sr)
 		const zp = - x * sp + y * (cp*sr) + z * (cp*cr)
 		return [xp, yp, zp]
-	}
-
-	isFinished() {
-		return time * timeScale > screen.width
 	}
 }
 
