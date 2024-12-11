@@ -23,10 +23,11 @@ window.onload = () => {
 	resetSimulation()
 	screen.clear()
 	console.log('running')
+	run()
+	document.getElementById('run').onclick = resetSimulation
 	document.getElementById('pvalue').oninput = resetSimulation
 	document.getElementById('ivalue').oninput = resetSimulation
 	document.getElementById('dvalue').oninput = resetSimulation
-	run()
 }
 
 function run() {
