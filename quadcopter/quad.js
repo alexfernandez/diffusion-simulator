@@ -107,10 +107,6 @@ function scale([x, y, z], factor) {
 	return [factor * x, factor * y, factor * z]
 }
 
-function display([x, y, z]) {
-	return `[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`
-}
-
 class Drone {
 	yaw = new AcceleratedDistance()
 	pitch = new AcceleratedDistance()
@@ -377,9 +373,12 @@ class Screen {
 		drone.draw()
 		this.drawHorizon()
 		this.ctx.fillText(`t = ${time.toFixed(1)} s`, 50, this.height + this.fontSize - 1)
-		this.ctx.fillText(`pos = ${display(drone.pos.getDistances())}`, 200, this.height + this.fontSize - 1)
-		this.ctx.fillText(`vel = ${display(drone.pos.getSpeed())}`, 400, this.height + this.fontSize - 1)
-		this.ctx.fillText(`acc = ${display(drone.pos.getAccel())}`, 600, this.height + this.fontSize - 1)
+		this.ctx.fillText(`pos = ${this.displayVector(drone.pos.getDistances())}`, 200, this.height + this.fontSize - 1)
+		this.ctx.fillText(`vel = ${this.displayVector(drone.pos.getSpeed())}`, 400, this.height + this.fontSize - 1)
+		this.ctx.fillText(`acc = ${this.displayVector(drone.pos.getAccel())}`, 600, this.height + this.fontSize - 1)
+		this.ctx.fillText(`yaw: ${this.displayDegrees(drone.yaw.distance)}`, this.fontSize, this.fontSize)
+		this.ctx.fillText(`pitch: ${this.displayDegrees(drone.pitch.distance)}`, this.fontSize, 2 * this.fontSize)
+		this.ctx.fillText(`roll: ${this.displayDegrees(drone.roll.distance)}`, this.fontSize, 3 * this.fontSize)
 	}
 
 	drawHorizon() {
@@ -406,6 +405,15 @@ class Screen {
 		this.ctx.moveTo(this.width / 2 + point1.x, this.height / 2 + point1.y)
 		this.ctx.lineTo(this.width / 2 + point2.x, this.height / 2 + point2.y)
 		this.ctx.stroke()
+	}
+
+	displayVector([x, y, z]) {
+		return `[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`
+	}
+
+	displayDegrees(angle) {
+		const degrees = angle * 180 / Math.PI
+		return degrees.toFixed(0) % 360
 	}
 }
 
