@@ -33,6 +33,7 @@ class Drone {
 			return this.computeBroken(dt)
 		}
 		this.forces = this.propulsion.computeForces(dt)
+		console.log(`forces: ${this.forces}`)
 		const accel = this.computeAccel()
 		this.pos.update(accel, dt)
 		const [yawRot, pitchRot, rollRot] = this.computeRotationalAccels()
@@ -63,8 +64,8 @@ class Drone {
 		const accelGrav = sum(inertialAccel, gravity)
 		const speed = this.pos.getSpeed()
 		const drag = this.dragComputer.computeDrag(speed)
-		const total = sum(accelGrav, drag)
-		return total
+		const totalAccel = sum(accelGrav, drag)
+		return totalAccel
 	}
 
 	computeRotationalAccels() {
@@ -149,9 +150,9 @@ class Propulsion {
 	constructor(drone, heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.drone = drone
 		this.heightComputer = new PidComputer(heightTarget, [1, 0, 4])
-		this.yawComputer = new PidComputer(yawTarget, [1, 0, 4])
-		this.pitchComputer = new PidComputer(pitchTarget, [1, 0, 4])
-		this.rollComputer = new PidComputer(rollTarget, [1, 0, 4])
+		this.yawComputer = new PidComputer(yawTarget, [0.001, 0, 0.0004])
+		this.pitchComputer = new PidComputer(pitchTarget, [0.001, 0, 0.0004])
+		this.rollComputer = new PidComputer(rollTarget, [0.001, 0, 0.0004])
 	}
 
 	computeForces(dt) {
