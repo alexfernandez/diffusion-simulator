@@ -126,11 +126,11 @@ class Drone {
 		return [xp, yp, zp]
 	}
 
-	isFinished() {
+	isFinished(time) {
 		if (this.brokenSeparation > maxSeparation) {
 			return true
 		}
-		return this.propulsion.isFinished()
+		return this.propulsion.isFinished(time)
 	}
 }
 

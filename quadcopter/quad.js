@@ -31,7 +31,7 @@ function run() {
 	updater = window.setInterval(() => {
 		update(dt)
 		screen.draw()
-		if (drone.isFinished()) {
+		if (drone.isFinished(time)) {
 			pause()
 		}
 	}, dt * 1000)
@@ -77,9 +77,9 @@ function getCheckbox(name) {
 
 function update(dt) {
 	const newTime = time + dt
+	console.log(`time: ${newTime.toFixed(1)}`)
 	drone.update(dt)
 	time = newTime
-	console.log(`time: ${time.toFixed(1)}`)
 }
 
 class Screen {
