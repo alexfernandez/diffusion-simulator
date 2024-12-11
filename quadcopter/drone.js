@@ -69,8 +69,8 @@ class Drone {
 
 	computeRotationalAccels() {
 		const yawTorque = radius * (this.forces[0] - this.forces[1] + this.forces[2] - this.forces[3])
-		const pitchTorque = radius * (this.forces[0] + this.forces[1] - this.forces[2] - this.forces[3])
-		const rollTorque = radius * (this.forces[0] - this.forces[1] + this.forces[2] - this.forces[3])
+		const pitchTorque = radius * (this.forces[0] - this.forces[1] - this.forces[2] + this.forces[3])
+		const rollTorque = radius * (this.forces[0] + this.forces[1] - this.forces[2] - this.forces[3])
 		const yawMoment = mass * radius * radius / 12
 		const pitchMoment = mass * radius * radius / 2
 		const rollMoment = mass * radius * radius / 2
