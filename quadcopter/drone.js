@@ -52,8 +52,6 @@ class Drone {
 			}
 			z.speed = 0
 		}
-		console.log(`speed: ${this.pos.getSpeed()}`)
-		console.log(`accel: ${this.pos.getAccel()}`)
 		this.wind.update(dt)
 	}
 
@@ -141,25 +139,26 @@ class Drone {
 
 class Wind {
 	strength = [0, 0, 0]
-	maxStrength = [0.5, 0.5, 0.1]
-	randomWalk = [0.001, 0.001, 0.0001]
-	pole = new AcceleratedVector()
+	maxStrength = [1, 1, 0.2]
+	randomWalk = [1, 1, 0.2]
 	maxPoleLength = 0.5
+	pole = new AcceleratedVector([0, 0, -this.maxPoleLength])
 
 	update(dt) {
 		for (let index = 0; index < this.strength.length; index++) {
-			this.strength[index] = this.strength[index] + this.randomWalk[index] * Math.random() * dt
+			this.strength[index] = this.strength[index] + this.randomWalk[index] * (Math.random() - 0.5) * dt
 			if (this.strength[index] > this.maxStrength[index]) {
 				this.strength[index] = this.maxStrength[index]
 			} else if (this.strength[index] < -this.maxStrength[index]) {
 				this.strength[index] = -this.maxStrength[index]
 			}
 		}
-		this.pole.update(sum(this.strength, gravity), dt)
+		console.log(this.strength)
+		this.pole.update(sum(scale(this.strength, 3), gravity), dt)
 		const distances = this.pole.getDistances()
 		const length = Math.sqrt(distances[0] * distances[0] + distances[1] * distances[1] + distances[2] * distances[2])
 		if (length > this.maxPoleLength) {
-			const ratio = this.maxPoleLength / length
+			const ratio = length / this.maxPoleLength
 			for (let index = 0; index < this.strength.length; index++) {
 				const value = this.pole.getValue(index)
 				value.distance /= ratio
@@ -170,9 +169,11 @@ class Wind {
 
 
 	draw() {
-		const start = [-1.5, 0, 2]
-		const end = sum(start, this.pole.getDistances())
-		screen.line3d(start, end, 'green')
+		const start = [-1.8, 0, 1]
+		const pole = [-1.8, 0, 1.8]
+		screen.line3d(start, pole, 'green')
+		const end = sum(pole, this.pole.getDistances())
+		screen.line3d(pole, end, 'green')
 	}
 }
 
@@ -278,6 +279,15 @@ class AcceleratedDistance {
 
 class AcceleratedVector {
 	acceleratedValues = [new AcceleratedDistance(), new AcceleratedDistance(), new AcceleratedDistance()]
+
+	constructor(distances) {
+		if (!distances) {
+			return
+		}
+		for (let index = 0; index < distances.length; index++) {
+			this.acceleratedValues[index].distance = distances[index]
+		}
+	}
 
 	update(accelVector, dt) {
 		for (let index = 0; index < this.acceleratedValues.length; index++) {
