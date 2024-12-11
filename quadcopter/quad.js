@@ -50,7 +50,6 @@ function reset() {
 }
 
 function resetSimulation() {
-	console.log('resetting')
 	readParameters()
 	time = 0
 	drone = new Drone(heightTarget, yawTarget, pitchTarget, rollTarget)
@@ -150,7 +149,7 @@ class Screen {
 
 	displayDegrees(angle) {
 		const degrees = angle * 180 / Math.PI
-		return degrees.toFixed(0) % 360
+		return degrees.toFixed(1) % 360
 	}
 }
 
