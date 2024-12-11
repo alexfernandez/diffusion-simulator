@@ -39,6 +39,7 @@ class Drone {
 		const accel = this.computeAccel()
 		this.pos.update(accel, dt)
 		const [yawRot, pitchRot, rollRot] = this.computeRotationalAccels()
+		console.log(yawRot, pitchRot, rollRot)
 		this.yaw.update(yawRot, dt)
 		this.pitch.update(pitchRot, dt)
 		this.roll.update(rollRot, dt)
@@ -77,7 +78,10 @@ class Drone {
 		const yawMoment = mass * radius * radius / 12
 		const pitchMoment = mass * radius * radius / 2
 		const rollMoment = mass * radius * radius / 2
-		return [yawTorque / yawMoment, pitchTorque / pitchMoment, rollTorque / rollMoment]
+		const yawWind = (this.wind.strength[0] + this.wind.strength[1]) / 20
+		const pitchWind = this.wind.strength[1] / 40
+		const rollWind = this.wind.strength[2] / 40
+		return [yawTorque / yawMoment + yawWind, pitchTorque / pitchMoment + pitchWind, rollTorque / rollMoment + rollWind]
 	}
 
 	draw() {
