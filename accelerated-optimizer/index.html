@@ -39,9 +39,9 @@
 			<input type="number" name="pshow" min="0" max="4" value="0.1" oninput="this.form.pvalue.value=this.value" />
 			<br>
 			<label for="ivalue">i value</label>
-			<input type="range" id="ivalue" name="ivalue" min="0" max="4" value="0.1" step="0.01"
+			<input type="range" id="ivalue" name="ivalue" min="0" max="4" value="0" step="0.01"
 				onchange="this.form.ishow.value = this.value" />
-			<input type="number" name="ishow" min="0" max="4" value="0.1" oninput="this.form.ivalue.value=this.value" />
+			<input type="number" name="ishow" min="0" max="4" value="0" oninput="this.form.ivalue.value=this.value" />
 			<br>
 			<label for="dvalue">d value</label>
 			<input type="range" id="dvalue" name="dvalue" min="0" max="4" value="0.1" step="0.01"
@@ -49,10 +49,15 @@
 			<input type="number" name="dshow" min="0" max="4" value="0.1" oninput="this.form.dvalue.value=this.value" />
 			<br>
 			<label for="svalue">s value</label>
-			<input type="range" id="svalue" name="svalue" min="0" max="4" value="0.1" step="0.01"
+			<input type="range" id="svalue" name="svalue" min="0" max="4" value="0" step="0.01"
 				onchange="this.form.sshow.value = this.value" />
-			<input type="number" name="sshow" min="0" max="4" value="0.1" oninput="this.form.svalue.value=this.value" />
+			<input type="number" name="sshow" min="0" max="4" value="0" oninput="this.form.svalue.value=this.value" />
 			<br>
+			<br>
+			<label for="samples">Derivative samples</label>
+			<input type="range" id="samples" min="1" max="10" step="1" value="1"
+				onchange="this.form.samplesshow.value=this.value"/>
+			<input type="number" name="samplesshow" min="0" max="4" value="1" oninput="this.form.samples.value=this.value" />
 			<br>
 			<label for="delay">Delay</label>
 			<input type="number" id="delay" value="0">

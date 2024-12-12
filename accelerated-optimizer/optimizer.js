@@ -12,8 +12,9 @@ const mass = 0.03
 
 // drone movement
 const maxAccel = 10
+const maxJerk = 10
 const smoothScale = 5
-let pvalue, ivalue, dvalue, svalue
+let pvalue, ivalue, dvalue, svalue, samples
 
 // screen
 let updater, screen
@@ -22,13 +23,14 @@ window.onload = () => {
 	screen = new Screen()
 	resetSimulation()
 	screen.clear()
-	console.log('running')
-	run()
 	document.getElementById('run').onclick = resetSimulation
 	document.getElementById('pvalue').oninput = resetSimulation
 	document.getElementById('ivalue').oninput = resetSimulation
 	document.getElementById('dvalue').oninput = resetSimulation
 	document.getElementById('svalue').oninput = resetSimulation
+	document.getElementById('samples').oninput = resetSimulation
+	console.log('running')
+	run()
 }
 
 function run() {
@@ -38,6 +40,7 @@ function run() {
 	ivalue = getParameter('ivalue')
 	dvalue = getParameter('dvalue')
 	svalue = getParameter('svalue')
+	samples = getParameter('samples')
 	console.log(`pids weights: ${[pvalue,ivalue,dvalue,svalue]}`)
 	if (updater) return
 	while (time * timeScale < screen.width) {
@@ -90,22 +93,44 @@ class Drone {
 	target = 0
 	dragComputer = new DragComputer()
 	delay = 0
-	lastError = 0
+	lastErrors = []
 	lastDiff = 0
+	lastAccel = 0
 	errorSum = 0
 	errorInterval = 0
 	algorithm = 'none'
 
 	update(dt) {
-		this.accel = this.computeAccel(dt)
-		const newSpeed = this.speed + dt * this.accel
+		const newAccel = this.computeAccel(dt)
+		const newSpeed = this.speed + dt * newAccel
 		const newPos = this.pos + dt * newSpeed
+		this.lastAccel = this.accel
 		this.pos = newPos
 		this.speed = newSpeed
+		this.accel = newAccel
 	}
 
 	computeAccel(dt) {
 		const accel = this.computeByAlgorithm(dt)
+		const limitedJerk = this.limitJerk(accel)
+		const limitedMax = this.limitMax(limitedJerk)
+		return limitedMax
+	}
+
+	limitJerk(accel) {
+		const jerk = accel - this.lastAccel
+		if (jerk > maxJerk) {
+			console.log(`+${jerk}`)
+			return this.lastAccel + maxJerk
+		}
+		if (jerk < -maxJerk) {
+			console.log('-')
+			return this.lastAccel - maxJerk
+		}
+		return accel
+	}
+
+	limitMax(accel) {
 		if (accel > maxAccel) {
 			return maxAccel
 		}
@@ -144,21 +169,40 @@ class Drone {
 	}
 
 	computePid(dt) {
-		const error = this.target - this.pos
-		const proportional = error
+		const error = (this.target - this.pos) / dt
+		const proportional = error / dt
 		this.errorSum += error
 		this.errorInterval += dt
-		const integral = this.errorSum / this.errorInterval / 10
-		const derivative = (error - this.lastError) / dt
-		this.lastError = error
+		const integral = this.errorSum / this.errorInterval
+		const derivative = this.computeDerivative(error) / dt
+		this.storeLastError(error)
 		return proportional * pvalue + integral * ivalue + derivative * dvalue
+	}
+
+	computeDerivative(error) {
+		const length = this.lastErrors.length
+		if (length == 0) {
+			return 0
+		}
+		if (length > samples) {
+			throw new Error(`Too many samples: ${length} > ${samples}`)
+		}
+		const lastError = this.lastErrors[length - 1]
+		return (error - lastError) / length
+	}
+
+	storeLastError(error) {
+		this.lastErrors.unshift(error)
+		if (this.lastErrors.length > samples) {
+			this.lastErrors.pop()
+		}
 	}
 
 	computePds(dt) {
 		const error = (this.target - this.pos) / dt
 		const proportional = error / dt
-		const derivative = (error - this.lastError) / dt
-		this.lastError = error
+		const derivative = this.computeDerivative(error) / dt
+		this.storeLastError(error)
 		const speed = -this.speed / dt
 		return proportional * pvalue + derivative * dvalue + speed * svalue
 	}
