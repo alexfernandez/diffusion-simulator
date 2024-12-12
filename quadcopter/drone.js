@@ -190,8 +190,8 @@ class Wind {
 
 
 	draw() {
-		const start = [-1.8, 0, 1]
-		const pole = [-1.8, 0, 1.8]
+		const start = [-1.1, 0, 1]
+		const pole = [-1.1, 0, 1.8]
 		screen.line3d(start, pole, 'green')
 		const end = sum(pole, this.pole.getDistances())
 		screen.line3d(pole, end, 'green')
