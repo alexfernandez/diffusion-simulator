@@ -12,7 +12,6 @@ const mass = 0.03
 
 // drone movement
 const maxAccel = 10
-const maxJerk = 10
 const smoothScale = 5
 let pvalue, ivalue, dvalue, svalue, samples
 
@@ -112,22 +111,8 @@ class Drone {
 
 	computeAccel(dt) {
 		const accel = this.computeByAlgorithm(dt)
-		const limitedJerk = this.limitJerk(accel)
-		const limitedMax = this.limitMax(limitedJerk)
+		const limitedMax = this.limitMax(accel)
 		return limitedMax
-	}
-
-	limitJerk(accel) {
-		const jerk = accel - this.lastAccel
-		if (jerk > maxJerk) {
-			console.log(`+${jerk}`)
-			return this.lastAccel + maxJerk
-		}
-		if (jerk < -maxJerk) {
-			console.log('-')
-			return this.lastAccel - maxJerk
-		}
-		return accel
 	}
 
 	limitMax(accel) {
