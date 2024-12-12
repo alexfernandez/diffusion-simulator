@@ -13,7 +13,7 @@ const mass = 0.03
 // drone movement
 const maxAccel = 10
 const smoothScale = 5
-const pidWeights = [0, 0, 0]
+let pvalue, ivalue, dvalue, svalue
 
 // screen
 let updater, screen
@@ -28,15 +28,17 @@ window.onload = () => {
 	document.getElementById('pvalue').oninput = resetSimulation
 	document.getElementById('ivalue').oninput = resetSimulation
 	document.getElementById('dvalue').oninput = resetSimulation
+	document.getElementById('svalue').oninput = resetSimulation
 }
 
 function run() {
 	drone.delay = getParameter('delay')
 	drone.algorithm = getRadioButton('algorithm')
-	pidWeights[0] = getParameter('pvalue')
-	pidWeights[1] = getParameter('ivalue')
-	pidWeights[2] = getParameter('dvalue')
-	console.log(`pid weights: ${pidWeights}`)
+	pvalue = getParameter('pvalue')
+	ivalue = getParameter('ivalue')
+	dvalue = getParameter('dvalue')
+	svalue = getParameter('svalue')
+	console.log(`pids weights: ${[pvalue,ivalue,dvalue,svalue]}`)
 	if (updater) return
 	while (time * timeScale < screen.width) {
 		update(dt)
@@ -118,12 +120,10 @@ class Drone {
 			return this.computeNaive()
 		} else if (this.algorithm == 'smooth') {
 			return this.computeSmooth()
-		} else if (this.algorithm == 'pi') {
-			return this.computePid(dt, piWeights)
-		} else if (this.algorithm == 'pd') {
-			return this.computePid(dt, pdWeights)
 		} else if (this.algorithm == 'pid') {
 			return this.computePid(dt)
+		} else if (this.algorithm == 'pds') {
+			return this.computePds(dt)
 		}
 		return 0
 	}
@@ -143,7 +143,7 @@ class Drone {
 		return diff / smoothScale
 	}
 
-	computePid(dt, weights = pidWeights) {
+	computePid(dt) {
 		const error = this.target - this.pos
 		const proportional = error
 		this.errorSum += error
@@ -151,7 +151,16 @@ class Drone {
 		const integral = this.errorSum / this.errorInterval / 10
 		const derivative = (error - this.lastError) / dt
 		this.lastError = error
-		return proportional * weights[0] + integral * weights[1] + derivative * weights[2]
+		return proportional * pvalue + integral * ivalue + derivative * dvalue
+	}
+
+	computePds(dt) {
+		const error = (this.target - this.pos) / dt
+		const proportional = error / dt
+		const derivative = (error - this.lastError) / dt
+		this.lastError = error
+		const speed = -this.speed / dt
+		return proportional * pvalue + derivative * dvalue + speed * svalue
 	}
 
 	draw() {

@@ -29,6 +29,8 @@
 				<label for="smooth">smooth</label>
 				<input type="radio" id="pid" name="algorithm" value="pid" checked>
 				<label for="pid">pid</label>
+				<input type="radio" id="pds" name="algorithm" value="pds">
+				<label for="pds">pds</label>
 			</fieldset>
 			<br>
 			<label for="pvalue">p value</label>
@@ -45,6 +47,11 @@
 			<input type="range" id="dvalue" name="dvalue" min="0" max="4" value="0.1" step="0.01"
 				onchange="this.form.dshow.value = this.value" />
 			<input type="number" name="dshow" min="0" max="4" value="0.1" oninput="this.form.dvalue.value=this.value" />
+			<br>
+			<label for="svalue">s value</label>
+			<input type="range" id="svalue" name="svalue" min="0" max="4" value="0.1" step="0.01"
+				onchange="this.form.sshow.value = this.value" />
+			<input type="number" name="sshow" min="0" max="4" value="0.1" oninput="this.form.svalue.value=this.value" />
 			<br>
 			<br>
 			<label for="delay">Delay</label>
