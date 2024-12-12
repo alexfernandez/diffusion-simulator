@@ -132,8 +132,6 @@ class Drone {
 			return this.computeSmooth()
 		} else if (this.algorithm == 'pid') {
 			return this.computePid(dt)
-		} else if (this.algorithm == 'pds') {
-			return this.computePds(dt)
 		}
 		return 0
 	}
@@ -181,15 +179,6 @@ class Drone {
 		if (this.lastErrors.length > samples) {
 			this.lastErrors.pop()
 		}
-	}
-
-	computePds(dt) {
-		const error = (this.target - this.pos) / dt
-		const proportional = error / dt
-		const derivative = this.computeDerivative(error) / dt
-		this.storeLastError(error)
-		const speed = -this.speed / dt
-		return proportional * pvalue + derivative * dvalue + speed * svalue
 	}
 
 	draw() {
