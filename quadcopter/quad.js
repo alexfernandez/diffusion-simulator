@@ -204,11 +204,11 @@ class Graph extends Canvas {
 		this.plot2d([x, this.first + this.axis - scale * pitch - 1], 'green')
 		this.plot2d([x, this.second + this.axis - scale * roll - 1], 'blue')
 		this.ctx.clearRect(0, 0, this.width, this.fontSize)
-		this.ctx.fillText(`yaw: ${yaw}`, 5, this.fontSize - 1)
+		this.ctx.fillText(`yaw: ${yaw.toFixed(1)}`, 5, this.fontSize - 1)
 		this.ctx.clearRect(0, this.first, this.width, this.fontSize)
-		this.ctx.fillText(`pitch: ${pitch}`, 5, this.first + this.fontSize - 1)
+		this.ctx.fillText(`pitch: ${pitch.toFixed(1)}`, 5, this.first + this.fontSize - 1)
 		this.ctx.clearRect(0, this.second, this.width, this.fontSize)
-		this.ctx.fillText(`roll: ${roll}`, 5, this.second + this.fontSize - 1)
+		this.ctx.fillText(`roll: ${roll.toFixed(1)}`, 5, this.second + this.fontSize - 1)
 	}
 }
 
