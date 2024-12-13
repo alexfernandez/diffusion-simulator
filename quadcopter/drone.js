@@ -15,6 +15,12 @@ const maxSpeed = 5
 const separationSpeed = 5
 const maxSeparation = 4
 
+const yawMoment = mass * radius * radius / 12
+const pitchMoment = mass * radius * radius / 2
+const rollMoment = mass * radius * radius / 2
+// factor of drone torque to motor torque
+const yawPortion = 0.0001
+
 
 class Drone {
 	yaw = new AcceleratedDistance()
@@ -88,13 +94,13 @@ class Drone {
 		const yawTorque = radius * (this.forces[0] - this.forces[1] + this.forces[2] - this.forces[3])
 		const pitchTorque = radius * (this.forces[0] - this.forces[1] - this.forces[2] + this.forces[3])
 		const rollTorque = radius * (this.forces[0] + this.forces[1] - this.forces[2] - this.forces[3])
-		const yawMoment = mass * radius * radius / 12
-		const pitchMoment = mass * radius * radius / 2
-		const rollMoment = mass * radius * radius / 2
 		const yawWind = (this.wind.strength[0] + this.wind.strength[1]) / 80
 		const pitchWind = this.wind.strength[1] / 80
 		const rollWind = this.wind.strength[2] / 80
-		return [yawTorque / yawMoment + yawWind, pitchTorque / pitchMoment + pitchWind, rollTorque / rollMoment + rollWind]
+		const yawAccel = (yawTorque / yawMoment + yawWind) * yawPortion
+		const pitchAccel = pitchTorque / pitchMoment + pitchWind
+		const rollAccel = rollTorque / rollMoment + rollWind
+		return [yawAccel, pitchAccel, rollAccel]
 	}
 
 	draw() {
@@ -249,15 +255,22 @@ class Propulsion {
 	}
 
 	computeAccels(dt) {
-		const distances = this.drone.pos.getDistances()
-		const zAccel = this.heightComputer.computePid(distances[2])
-		const yawTorque = this.yawComputer.computePid(this.drone.yaw.distance)
-		const pitchTorque = this.pitchComputer.computePid(this.drone.pitch.distance)
-		const rollTorque = this.rollComputer.computePid(this.drone.roll.distance)
+		const zValue = this.drone.pos.getValue(2)
+		const zAccel = this.heightComputer.computeDoublePid(zValue, dt)
+		// in the yaw axis only a small portion of the motor force goes to torque
+		const yawAccel = this.yawComputer.computeDoublePid(this.drone.yaw, dt) * yawPortion
+		this.yawComputer.display()
+		const pitchAccel = this.pitchComputer.computePid(this.drone.pitch.distance, dt)
+		const rollAccel = this.rollComputer.computePid(this.drone.roll.distance, dt)
+		const yawTorque = yawAccel / yawMoment
+		console.log(yawTorque, 4 * mass * radius)
+		const pitchTorque = pitchAccel / pitchMoment
+		const rollTorque = rollAccel / rollMoment
 		const a1 = zAccel / 4 + (rollTorque + pitchTorque + yawTorque) / (4 * mass * radius)
 		const a2 = zAccel / 4 + (rollTorque - pitchTorque - yawTorque) / (4 * mass * radius)
 		const a3 = zAccel / 4 + (-rollTorque - pitchTorque + yawTorque) / (4 * mass * radius)
 		const a4 = zAccel / 4 + (-rollTorque + pitchTorque - yawTorque) / (4 * mass * radius)
+		console.log([a1, a2, a3, a4])
 		return [a1, a2, a3, a4]
 	}
 
