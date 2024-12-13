@@ -18,8 +18,8 @@ const maxSeparation = 4
 const yawMoment = mass * radius * radius / 12
 const pitchMoment = mass * radius * radius / 2
 const rollMoment = mass * radius * radius / 2
-// factor of drone torque to motor torque
-const yawPortion = 0.0001
+// factor of motor thrust to drone torque
+const yawFactor = 0.000001
 
 
 class Drone {
@@ -97,7 +97,7 @@ class Drone {
 		const yawWind = (this.wind.strength[0] + this.wind.strength[1]) / 80
 		const pitchWind = this.wind.strength[1] / 80
 		const rollWind = this.wind.strength[2] / 80
-		const yawAccel = (yawTorque / yawMoment + yawWind) * yawPortion
+		const yawAccel = yawTorque / yawMoment + yawWind
 		const pitchAccel = pitchTorque / pitchMoment + pitchWind
 		const rollAccel = rollTorque / rollMoment + rollWind
 		return [yawAccel, pitchAccel, rollAccel]
@@ -231,7 +231,10 @@ class Propulsion {
 
 	computeForces(dt) {
 		const pwms = this.computePwms(dt)
-		console.log(pwms)
+		const averagePwm = pwms.reduce((a, b) => a+b) / pwms.length
+		if (pwms.some(pwm => pwm != averagePwm)) {
+			console.log(pwms)
+		}
 		return pwms.map(pwm => this.convertPwmToThrust(pwm))
 	}
 
@@ -260,19 +263,17 @@ class Propulsion {
 		const zValue = this.drone.pos.getValue(2)
 		const zAccel = this.heightComputer.computeDoublePid(zValue, dt)
 		// in the yaw axis only a small portion of the motor force goes to torque
-		const yawAccel = this.yawComputer.computeDoublePid(this.drone.yaw, dt) * yawPortion
-		this.yawComputer.display()
-		const pitchAccel = this.pitchComputer.computePid(this.drone.pitch.distance, dt)
+		const yawAccel = 0.1 //this.yawComputer.computeDoublePid(this.drone.yaw, dt)
+		//this.yawComputer.display()
+		const pitchAccel = 0.0001 //this.pitchComputer.computePid(this.drone.pitch.distance, dt)
 		const rollAccel = this.rollComputer.computePid(this.drone.roll.distance, dt)
-		const yawTorque = yawAccel / yawMoment
-		console.log(yawTorque, 4 * mass * radius)
-		const pitchTorque = pitchAccel / pitchMoment
-		const rollTorque = rollAccel / rollMoment
+		const yawTorque = yawAccel * yawFactor
+		const pitchTorque = pitchAccel * pitchMoment
+		const rollTorque = rollAccel * rollMoment
 		const a1 = zAccel / 4 + (rollTorque + pitchTorque + yawTorque) / (4 * mass * radius)
 		const a2 = zAccel / 4 + (rollTorque - pitchTorque - yawTorque) / (4 * mass * radius)
 		const a3 = zAccel / 4 + (-rollTorque - pitchTorque + yawTorque) / (4 * mass * radius)
 		const a4 = zAccel / 4 + (-rollTorque + pitchTorque - yawTorque) / (4 * mass * radius)
-		console.log([a1, a2, a3, a4])
 		return [a1, a2, a3, a4]
 	}
 
