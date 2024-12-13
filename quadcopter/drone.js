@@ -215,21 +215,23 @@ class DragComputer {
 	}
 }
 
-const heightPidWeights = [1, 0, 4]
-const anglePidWeights = [0.0001, 0, 0.0001]
+const heightPidWeightsSpeed = [1, 0, 0]
+const heightPidWeightsAccel = [1, 0, 0]
+const anglePidWeightsSpeed = [0.01, 0, 0]
+const anglePidWeightsAccel = [0.01, 0, 0]
 
 class Propulsion {
 	constructor(drone, heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.drone = drone
-		this.heightComputer = new PidComputer(heightTarget, heightPidWeights)
-
-		this.yawComputer = new PidComputer(yawTarget, anglePidWeights)
-		this.pitchComputer = new PidComputer(pitchTarget, anglePidWeights)
-		this.rollComputer = new PidComputer(rollTarget, anglePidWeights)
+		this.heightComputer = new DoublePidComputer(heightTarget, heightPidWeightsSpeed, heightPidWeightsAccel)
+		this.yawComputer = new DoublePidComputer(yawTarget, anglePidWeightsSpeed, anglePidWeightsAccel)
+		this.pitchComputer = new PidComputer(pitchTarget, anglePidWeightsSpeed)
+		this.rollComputer = new PidComputer(rollTarget, anglePidWeightsSpeed)
 	}
 
 	computeForces(dt) {
 		const pwms = this.computePwms(dt)
+		console.log(pwms)
 		return pwms.map(pwm => this.convertPwmToThrust(pwm))
 	}
 
@@ -279,25 +281,57 @@ class Propulsion {
 	}
 }
 
+class DoublePidComputer {
+	speedComputer
+	accelComputer
+
+	constructor(setPoint, speedWeights, accelWeights) {
+		this.speedComputer = new PidComputer(setPoint, speedWeights)
+		this.accelComputer = new PidComputer(0, accelWeights)
+	}
+
+	computeDoublePid(accelerated, dt) {
+		const targetSpeed = this.speedComputer.computePid(accelerated.distance, dt)
+		this.accelComputer.setPoint = targetSpeed
+		const accel = this.accelComputer.computePid(accelerated.speed, dt)
+		return accel
+	}
+
+	display() {
+		console.log(`Display double computer:`)
+		this.speedComputer.display()
+		this.accelComputer.display()
+	}
+}
+
 class PidComputer {
-	pidWeights = [0, 0, 0]
+	weights = [0, 0, 0]
 	totalError = 0
 	lastError = 0
 	setPoint = 0
+	lastVariable
+	lastComputed = 0
 
 	constructor(setPoint, weights) {
 		this.setPoint = setPoint
-		this.pidWeights = weights
+		this.weights = weights
 	}
 
-	computePid(processVariable) {
+	computePid(processVariable, dt) {
+		this.lastVariable = processVariable
 		const error = this.setPoint - processVariable
 		const proportional = error
 		this.totalError += error
-		const integral = this.totalError
-		const derivative = error - this.lastError
+		const integral = this.totalError * dt
+		const derivative = (error - this.lastError) / dt
 		this.lastError = error
-		return proportional * this.pidWeights[0] + integral * this.pidWeights[1] + derivative * this.pidWeights[2]
+		const computed = proportional * this.weights[0] + integral * this.weights[1] + derivative * this.weights[2]
+		this.lastComputed = computed
+		return computed
+	}
+
+	display() {
+		console.log(`variable: ${this.lastVariable} -> ${this.setPoint}, computed: ${this.lastComputed}`)
 	}
 }
 
