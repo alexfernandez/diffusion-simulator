@@ -12,36 +12,35 @@ const mass = 0.03
 
 // drone movement
 const maxAccel = 10
-const smoothScale = 5
-let pvalue, ivalue, dvalue, svalue, samples
 
 // screen
-let updater, screen
+let screen
 
 window.onload = () => {
 	screen = new Screen()
 	resetSimulation()
 	screen.clear()
 	document.getElementById('run').onclick = resetSimulation
-	document.getElementById('pvalue').oninput = resetSimulation
-	document.getElementById('ivalue').oninput = resetSimulation
-	document.getElementById('dvalue').oninput = resetSimulation
-	document.getElementById('svalue').oninput = resetSimulation
-	document.getElementById('samples').oninput = resetSimulation
+	document.getElementById('p1value').oninput = resetSimulation
+	document.getElementById('i1value').oninput = resetSimulation
+	document.getElementById('d1value').oninput = resetSimulation
+	document.getElementById('p2value').oninput = resetSimulation
+	document.getElementById('i2value').oninput = resetSimulation
+	document.getElementById('d2value').oninput = resetSimulation
 	console.log('running')
 	run()
 }
 
 function run() {
-	drone.delay = getParameter('delay')
-	drone.algorithm = getRadioButton('algorithm')
-	pvalue = getParameter('pvalue')
-	ivalue = getParameter('ivalue')
-	dvalue = getParameter('dvalue')
-	svalue = getParameter('svalue')
-	samples = getParameter('samples')
-	console.log(`pids weights: ${[pvalue,ivalue,dvalue,svalue]}`)
-	if (updater) return
+	const p1value = getParameter('p1value')
+	const i1value = getParameter('i1value')
+	const d1value = getParameter('d1value')
+	drone.posComputer.weights = [p1value, i1value, d1value]
+	const p2value = getParameter('p2value')
+	const i2value = getParameter('i2value')
+	const d2value = getParameter('d2value')
+	drone.speedComputer.weights = [p2value, i2value, d2value]
+	console.log(`pids weights: ${drone.posComputer.weights}, ${drone.speedComputer.weights}`)
 	while (time * timeScale < screen.width) {
 		update(dt)
 		screen.draw()
@@ -59,10 +58,6 @@ function resetSimulation() {
 
 function getParameter(name) {
 	return parseFloat(document.getElementById(name).value)
-}
-
-function getRadioButton(name) {
-	return document.querySelector(`input[name="${name}"]:checked`).value
 }
 
 function update(dt) {
@@ -87,17 +82,17 @@ function scale([x, y, z], factor) {
 
 class Drone {
 	accel = 0
-	speed = 3
+	speed = 30
 	pos = 40
-	target = 0
 	dragComputer = new DragComputer()
-	delay = 0
-	lastErrors = []
+	errorSum = 0
+	lastError = 0
 	lastDiff = 0
 	lastAccel = 0
-	errorSum = 0
 	errorInterval = 0
 	algorithm = 'none'
+	posComputer = new PidComputer(0, [0, 0, 0])
+	speedComputer = new PidComputer(0, [0, 0, 0])
 
 	update(dt) {
 		const newAccel = this.computeAccel(dt)
@@ -110,7 +105,7 @@ class Drone {
 	}
 
 	computeAccel(dt) {
-		const accel = this.computeByAlgorithm(dt)
+		const accel = this.computePid(dt)
 		const limitedMax = this.limitMax(accel)
 		return limitedMax
 	}
@@ -125,60 +120,18 @@ class Drone {
 		return accel
 	}
 
-	computeByAlgorithm(dt) {
-		if (this.algorithm == 'naive') {
-			return this.computeNaive()
-		} else if (this.algorithm == 'smooth') {
-			return this.computeSmooth()
-		} else if (this.algorithm == 'pid') {
-			return this.computePid(dt)
-		}
-		return 0
-	}
-
-	computeNaive() {
-		if (this.pos > this.target) {
-			return -maxAccel
-		}
-		if (this.pos < this.target) {
-			return maxAccel
-		}
-		return 0
-	}
-
-	computeSmooth() {
-		const diff = this.target - this.pos
-		return diff / smoothScale
-	}
-
 	computePid(dt) {
-		const error = (this.target - this.pos) / dt
-		const proportional = error / dt
-		this.errorSum += error
-		this.errorInterval += dt
-		const integral = this.errorSum / this.errorInterval
-		const derivative = this.computeDerivative(error) / dt
-		this.storeLastError(error)
-		return proportional * pvalue + integral * ivalue + derivative * dvalue
+		const targetSpeed = this.posComputer.computePid(this.pos, dt)
+		this.speedComputer.setPoint = targetSpeed
+		const targetAccel = this.speedComputer.computePid(this.speed, dt)
+		console.log(`target speed: ${targetSpeed}, target accel: ${targetAccel}`)
+		return targetAccel
 	}
 
 	computeDerivative(error) {
-		const length = this.lastErrors.length
-		if (length == 0) {
-			return 0
-		}
-		if (length > samples) {
-			throw new Error(`Too many samples: ${length} > ${samples}`)
-		}
-		const lastError = this.lastErrors[length - 1]
-		return (error - lastError) / length
-	}
-
-	storeLastError(error) {
-		this.lastErrors.unshift(error)
-		if (this.lastErrors.length > samples) {
-			this.lastErrors.pop()
-		}
+		const derivative = error - this.lastError
+		this.lastError = error
+		return derivative
 	}
 
 	draw() {
@@ -227,6 +180,30 @@ class DragComputer {
 	compute(speed) {
 		const factor = -0.5 * this.density * this.cd * this.area / mass
 		return scale(speed, factor)
+	}
+}
+
+class PidComputer {
+	weights = [0, 0, 0]
+	totalError = 0
+	totalInterval = 0
+	lastError = 0
+	setPoint = 0
+
+	constructor(setPoint, weights) {
+		this.setPoint = setPoint
+		this.weights = weights
+	}
+
+	computePid(processVariable, dt) {
+		const error = this.setPoint - processVariable
+		const proportional = error
+		this.totalError += error
+		this.totalInterval += dt
+		const integral = this.totalError / this.totalInterval * dt
+		const derivative = (error - this.lastError) / dt
+		this.lastError = error
+		return proportional * this.weights[0] + integral * this.weights[1] + derivative * this.weights[2]
 	}
 }
 
@@ -284,4 +261,6 @@ class Screen {
 		this.ctx.stroke()
 	}
 }
+
+
 
