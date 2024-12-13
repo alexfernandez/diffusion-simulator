@@ -100,7 +100,9 @@ class Drone {
 		const yawAccel = yawTorque / yawMoment + yawWind
 		const pitchAccel = pitchTorque / pitchMoment + pitchWind
 		const rollAccel = rollTorque / rollMoment + rollWind
-		return [yawAccel, pitchAccel, rollAccel]
+		const accels = [yawAccel, pitchAccel, rollAccel]
+		const drag = this.dragComputer.computeDrag([this.yaw.speed, this.pitch.speed, this.roll.speed])
+		return sum(accels, drag)
 	}
 
 	draw() {
