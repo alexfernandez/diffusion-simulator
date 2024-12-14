@@ -1,53 +1,88 @@
 <html>
-  <head>
-    <title>Quadcopter simulator</title>
-    <script src="drone.js"></script>
-    <script src="quad.js"></script>
-    <style type="text/css">
-      #form {
-        display: inline-block;
-        vertical-align: top;
-        margin: 20px;
-      }
-      canvas {
-        border: solid black 1px;
-      }
-    </style>
+	<head>
+		<title>Quadcopter simulator</title>
+		<script src="drone.js"></script>
+		<script src="quad.js"></script>
+		<style type="text/css">
+			#form {
+				display: inline-block;
+				vertical-align: top;
+				margin: 20px;
+			}
+			canvas {
+				border: solid black 1px;
+			}
+		</style>
 
-  </head>
-  <body>
-    <h1>Quadcopter simulator</h1>
-    <canvas id="canvas" width="500" height="500"></canvas>
-    <canvas id="graph" width="300" height="480"></canvas>
-    <div id="form">
-    <form id="params">
-      <button id="run" type="button">run</button>
-      <button id="pause" type="button">pause</button>
-      <button id="reset" type="button">reset</button>
+	</head>
+	<body>
+		<h1>Quadcopter simulator</h1>
+		<canvas id="canvas" width="500" height="500"></canvas>
+		<canvas id="graph" width="300" height="480"></canvas>
+		<div id="form">
+		<form id="params">
+			<button id="run" type="button">run</button>
+			<button id="pause" type="button">pause</button>
+			<button id="reset" type="button">reset</button>
 		<h3>Tunable parameters</h3>
-      <label for="particles">Yaw (degrees)</label>
-      <input type="number" id="yaw" value="1">
-      <br>
-      <label for="speed">Pitch (degrees)</label>
-      <input type="number" id="pitch" value="0">
-      <br>
-      <label for="speed">Roll (degrees)</label>
-      <input type="number" id="roll" value="0">
-      <br>
-      <label for="wind">Wind</label>
-      <input type="checkbox" id="wind">
-      <br>
-      <label for="motor-imprecision">Motor imprecision (%)</label>
-      <input type="number" id="motor-imprecision" value="0">
-      <br>
-      <label for="autorun">Autorun</label>
-      <input type="checkbox" id="autorun" checked="true">
-      <br>
-    </form>
-    </div>
-    <p>
-    See
-    <a href="/2024/avis-minima">Avis Minima</a>.
-    </p>
-  </body>
+			<fieldset>
+				<legend>Position PID:</legend>
+				<input type="range" id="p1value" name="p1value" min="0" max="4" value="0.1" step="0.01"
+					onchange="this.form.p1show.value = this.value" />
+				<label for="p1value">p value</label>
+				<input type="number" name="p1show" min="0" max="4" value="0.1" disabled />
+				<br>
+				<input type="range" id="i1value" name="i1value" min="0" max="4" value="0" step="0.01"
+					onchange="this.form.i1show.value = this.value" />
+				<label for="i1value">i value</label>
+				<input type="number" name="i1show" min="0" max="4" value="0" disabled />
+				<br>
+				<input type="range" id="d1value" name="d1value" min="0" max="4" value="0.1" step="0.01"
+					onchange="this.form.d1show.value=this.value" />
+				<label for="d1value">d value</label>
+				<input type="number" name="d1show" min="0" max="4" value="0.1" disabled />
+			</fieldset>
+			<br>
+			<fieldset>
+				<legend>Speed PID:</legend>
+				<input type="range" id="p2value" name="p2value" min="0" max="4" value="0.1" step="0.01"
+					onchange="this.form.p2show.value = this.value" />
+				<label for="p2value">p value</label>
+				<input type="number" name="p2show" min="0" max="4" value="0.1" disabled />
+				<br>
+				<input type="range" id="i2value" name="i2value" min="0" max="4" value="0" step="0.01"
+					onchange="this.form.i2show.value = this.value" />
+				<label for="i2value">i value</label>
+				<input type="number" name="i2show" min="0" max="4" value="0" disabled />
+				<br>
+				<input type="range" id="d2value" name="d2value" min="0" max="4" value="0.1" step="0.01"
+					onchange="this.form.d2show.value=this.value" />
+				<label for="d2value">d value</label>
+				<input type="number" name="d2show" min="0" max="4" value="0.1" disabled />
+			</fieldset>
+			<label for="particles">Yaw (degrees)</label>
+			<input type="number" id="yaw" value="1">
+			<br>
+			<label for="speed">Pitch (degrees)</label>
+			<input type="number" id="pitch" value="0">
+			<br>
+			<label for="speed">Roll (degrees)</label>
+			<input type="number" id="roll" value="0">
+			<br>
+			<label for="wind">Wind</label>
+			<input type="checkbox" id="wind">
+			<br>
+			<label for="motor-imprecision">Motor imprecision (%)</label>
+			<input type="number" id="motor-imprecision" value="0">
+			<br>
+			<label for="autorun">Autorun</label>
+			<input type="checkbox" id="autorun" checked="true">
+			<br>
+		</form>
+		</div>
+		<p>
+		See
+		<a href="/2024/avis-minima">Avis Minima</a>.
+		</p>
+	</body>
 </html>
