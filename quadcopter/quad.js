@@ -211,7 +211,7 @@ class Screen extends Canvas {
 
 class Graph extends Canvas {
 	// [name, color, scale]
-	specs = [['height', 'black', 30], ['yaw', 'red', 10], ['pitch', 'green', 10], ['roll', 'blue', 10]]
+	specs = [['height', 'black', 20], ['yaw', 'red', 1], ['pitch', 'green', 1], ['roll', 'blue', 1]]
 	subgraphs = []
 
 	constructor() {
