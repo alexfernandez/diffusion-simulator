@@ -26,39 +26,39 @@
 			<button id="reset" type="button">reset</button>
 		<h3>Tunable parameters</h3>
 			<fieldset>
-				<legend>Position PID:</legend>
-				<input type="range" id="p1value" name="p1value" min="0" max="4" value="0.1" step="0.01"
+				<legend>Speed PID:</legend>
+				<input type="range" id="p1value" name="p1value" min="0" max="4" value="0.5" step="0.01"
 					onchange="this.form.p1show.value = this.value" />
 				<label for="p1value">p value</label>
-				<input type="number" name="p1show" min="0" max="4" value="0.1" disabled />
+				<input type="number" name="p1show" min="0" max="4" value="0.5" disabled />
 				<br>
 				<input type="range" id="i1value" name="i1value" min="0" max="4" value="0" step="0.01"
 					onchange="this.form.i1show.value = this.value" />
 				<label for="i1value">i value</label>
 				<input type="number" name="i1show" min="0" max="4" value="0" disabled />
 				<br>
-				<input type="range" id="d1value" name="d1value" min="0" max="4" value="0.1" step="0.01"
+				<input type="range" id="d1value" name="d1value" min="0" max="4" value="0" step="0.01"
 					onchange="this.form.d1show.value=this.value" />
 				<label for="d1value">d value</label>
-				<input type="number" name="d1show" min="0" max="4" value="0.1" disabled />
+				<input type="number" name="d1show" min="0" max="4" value="0" disabled />
 			</fieldset>
 			<br>
 			<fieldset>
-				<legend>Speed PID:</legend>
-				<input type="range" id="p2value" name="p2value" min="0" max="4" value="0.1" step="0.01"
+				<legend>Accel PID:</legend>
+				<input type="range" id="p2value" name="p2value" min="0" max="4" value="1" step="0.01"
 					onchange="this.form.p2show.value = this.value" />
 				<label for="p2value">p value</label>
-				<input type="number" name="p2show" min="0" max="4" value="0.1" disabled />
+				<input type="number" name="p2show" min="0" max="4" value="1" disabled />
 				<br>
 				<input type="range" id="i2value" name="i2value" min="0" max="4" value="0" step="0.01"
 					onchange="this.form.i2show.value = this.value" />
 				<label for="i2value">i value</label>
 				<input type="number" name="i2show" min="0" max="4" value="0" disabled />
 				<br>
-				<input type="range" id="d2value" name="d2value" min="0" max="4" value="0.1" step="0.01"
+				<input type="range" id="d2value" name="d2value" min="0" max="4" value="0" step="0.01"
 					onchange="this.form.d2show.value=this.value" />
 				<label for="d2value">d value</label>
-				<input type="number" name="d2show" min="0" max="4" value="0.1" disabled />
+				<input type="number" name="d2show" min="0" max="4" value="0" disabled />
 			</fieldset>
 			<label for="particles">Yaw (degrees)</label>
 			<input type="number" id="yaw" value="1">

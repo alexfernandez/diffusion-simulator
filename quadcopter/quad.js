@@ -9,6 +9,9 @@ const timeScale = 1/dt
 let drone
 const heightTarget = 1
 let yawTarget, pitchTarget, rollTarget, windActive, motorImprecisionPercent
+let pidWeightsSpeed = [0.5, 0, 0]
+let pidWeightsAccel = [1, 0, 0]
+
 
 // screen
 let updater, screen, graph
@@ -26,6 +29,13 @@ window.onload = () => {
 	document.getElementById('run').onclick = run
 	document.getElementById('pause').onclick = pause
 	document.getElementById('reset').onclick = reset
+	document.getElementById('p1value').oninput = resetAndRun
+	document.getElementById('i1value').oninput = resetAndRun
+	document.getElementById('d1value').oninput = resetAndRun
+	document.getElementById('p2value').oninput = resetAndRun
+	document.getElementById('i2value').oninput = resetAndRun
+	document.getElementById('d2value').oninput = resetAndRun
+
 }
 
 function run() {
@@ -66,6 +76,11 @@ function reset() {
 	graph.clear()
 }
 
+function resetAndRun() {
+	reset()
+	run()
+}
+
 function resetSimulation() {
 	readParameters()
 	time = 0
@@ -79,6 +94,14 @@ function readParameters() {
 	rollTarget = getDegrees('roll')
 	motorImprecisionPercent = getParameter('motor-imprecision')
 	windActive = getCheckbox('wind')
+	const p1value = getParameter('p1value')
+	const i1value = getParameter('i1value')
+	const d1value = getParameter('d1value')
+	pidWeightsSpeed = [p1value, i1value, d1value]
+	const p2value = getParameter('p2value')
+	const i2value = getParameter('i2value')
+	const d2value = getParameter('d2value')
+	pidWeightsAccel = [p2value, i2value, d2value]
 }
 
 function getDegrees(name) {

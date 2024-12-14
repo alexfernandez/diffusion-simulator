@@ -223,9 +223,6 @@ class DragComputer {
 	}
 }
 
-const pidWeightsSpeed = [0.5, 0, 0]
-const pidWeightsAccel = [1, 0, 0]
-
 class Propulsion {
 	constructor(drone, heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.drone = drone
