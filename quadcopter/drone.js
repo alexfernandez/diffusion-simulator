@@ -16,9 +16,9 @@ const separationSpeed = 5
 const maxSeparation = 4
 
 const yawMoment = mass * radius * radius / 12
-const pitchMoment = mass * radius * radius / 2
-const rollMoment = mass * radius * radius / 2
-// factor of motor thrust to drone torque
+const pitchMoment = 4 * mass * radius * radius / 2
+const rollMoment = mass * radius * radius / 4
+// factor of motor thrust to drone torque, estimated
 const yawFactor = 0.000001
 
 
