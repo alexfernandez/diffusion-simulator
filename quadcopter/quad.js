@@ -24,8 +24,6 @@ window.onload = () => {
 	screen.draw()
 	graph.clear()
 	autorun = getCheckbox('autorun')
-	console.log('running')
-	run()
 	document.getElementById('run').onclick = run
 	document.getElementById('pause').onclick = pause
 	document.getElementById('reset').onclick = reset
@@ -38,7 +36,8 @@ window.onload = () => {
 	document.getElementById('yaw').oninput = resetAndRun
 	document.getElementById('pitch').oninput = resetAndRun
 	document.getElementById('roll').oninput = resetAndRun
-
+	console.log('running')
+	run()
 }
 
 function run() {
@@ -105,6 +104,7 @@ function readParameters() {
 	const i2value = getParameter('i2value')
 	const d2value = getParameter('d2value')
 	pidWeightsAccel = [p2value, i2value, d2value]
+	autorun = getCheckbox('autorun')
 }
 
 function getDegrees(name) {
