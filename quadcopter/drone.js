@@ -125,6 +125,8 @@ class Drone {
 		const accelEnd = sum(distances, this.convertToInertial(accel))
 		screen.line3d(distances, accelEnd, 'red')
 		this.wind.draw()
+		const angles = [this.yaw, this.pitch, this.roll].map(angle => graph.displayDegrees(angle.distance))
+		graph.draw([distances[2], ...angles])
 	}
 
 	computeSegments() {
@@ -267,8 +269,7 @@ class Propulsion {
 	computeAccels(dt) {
 		const zValue = this.drone.pos.getValue(2)
 		const zAccel = this.heightComputer.computeDoublePid(zValue, dt)
-		// in the yaw axis only a small portion of the motor force goes to torque
-		const yawAccel = 0 //this.yawComputer.computeDoublePid(this.drone.yaw, dt)
+		const yawAccel = this.yawComputer.computeDoublePid(this.drone.yaw, dt)
 		//this.yawComputer.display()
 		const pitchAccel = this.pitchComputer.computeDoublePid(this.drone.pitch, dt)
 		const rollAccel = 0 //this.rollComputer.computePid(this.drone.roll.distance, dt)

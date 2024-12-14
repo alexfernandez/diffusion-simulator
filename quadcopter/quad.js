@@ -34,7 +34,6 @@ function run() {
 	updater = window.setInterval(() => {
 		update(dt)
 		screen.draw()
-		graph.draw()
 		if (drone.isFinished(time)) {
 			pause()
 		}
@@ -175,40 +174,65 @@ class Screen extends Canvas {
 }
 
 class Graph extends Canvas {
+	// [name, color, scale]
+	specs = [['height', 'black', 30], ['yaw', 'red', 10], ['pitch', 'green', 10], ['roll', 'blue', 10]]
+	subgraphs = []
 
 	constructor() {
 		super('graph')
-		this.first = this.height / 3
-		this.second = 2 * this.height / 3
-		this.third = this.height
-		this.axis = this.height / 6
+		this.buildSubgraphs()
+	}
+
+	buildSubgraphs() {
+		const total = this.specs.length
+		const height = this.height / total
+		let start = 0
+		const axis = this.height / (2 * total)
+		for (const spec of this.specs) {
+			const subgraph = new Subgraph(start, axis, spec)
+			this.subgraphs.push(subgraph)
+			start += height
+		}
 	}
 
 	clear() {
-		console.log(this.first, this.second, this.third, this.axis)
 		this.ctx.clearRect(0, 0, this.width, this.height)
-		this.line2d([0, this.axis], [this.width, this.axis], 'red')
-		this.line2d([0, this.first], [this.width, this.first], 'black')
-		this.line2d([0, this.first + this.axis], [this.width, this.first + this.axis], 'green')
-		this.line2d([0, this.second], [this.width, this.second], 'black')
-		this.line2d([0, this.second + this.axis], [this.width, this.second + this.axis], 'blue')
+		for (const subgraph of this.subgraphs) {
+			subgraph.clear()
+		}
 	}
 
-	draw() {
+	draw(values) {
+		console.log('draw', values)
 		const x = timeScale * time
-		const scale = 10
-		const yaw = this.displayDegrees(drone.yaw.distance)
-		const pitch = this.displayDegrees(drone.pitch.distance)
-		const roll = this.displayDegrees(drone.roll.distance)
-		this.plot2d([x, this.axis - yaw - 1], 'red')
-		this.plot2d([x, this.first + this.axis - scale * pitch - 1], 'green')
-		this.plot2d([x, this.second + this.axis - scale * roll - 1], 'blue')
-		this.ctx.clearRect(0, 0, this.width, this.fontSize)
-		this.ctx.fillText(`yaw: ${yaw.toFixed(1)}`, 5, this.fontSize - 1)
-		this.ctx.clearRect(0, this.first, this.width, this.fontSize)
-		this.ctx.fillText(`pitch: ${pitch.toFixed(1)}`, 5, this.first + this.fontSize - 1)
-		this.ctx.clearRect(0, this.second, this.width, this.fontSize)
-		this.ctx.fillText(`roll: ${roll.toFixed(1)}`, 5, this.second + this.fontSize - 1)
+		for (let index = 0; index < values.length; index++) {
+			const value = values[index]
+			const subgraph = this.subgraphs[index]
+			subgraph.draw(x, value)
+		}
+	}
+}
+
+class Subgraph {
+	constructor(start, axis, spec) {
+		this.start = start
+		this.axis = axis
+		this.name = spec[0]
+		this.color = spec[1]
+		this.scale = spec[2]
+	}
+
+	clear() {
+		console.log(this.start, this.axis)
+		graph.line2d([0, this.start], [graph.width, this.start], 'grey')
+		graph.line2d([0, this.start + this.axis], [graph.width, this.start + this.axis], this.color)
+	}
+
+	draw(x, y) {
+		console.log('graph', x, y)
+		graph.plot2d([x, this.start + this.axis - y * this.scale - 1], this.color)
+		graph.ctx.clearRect(0, this.start, graph.width, graph.fontSize)
+		graph.ctx.fillText(`${this.name}: ${y.toFixed(1)}`, 5, this.start + graph.fontSize - 1)
 	}
 }
 
