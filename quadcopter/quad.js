@@ -216,7 +216,6 @@ class Graph extends Canvas {
 	}
 
 	draw(values) {
-		console.log('draw', values)
 		const x = timeScale * time
 		for (let index = 0; index < values.length; index++) {
 			const value = values[index]
@@ -236,13 +235,11 @@ class Subgraph {
 	}
 
 	clear() {
-		console.log(this.start, this.axis)
 		graph.line2d([0, this.start], [graph.width, this.start], 'grey')
 		graph.line2d([0, this.start + this.axis], [graph.width, this.start + this.axis], this.color)
 	}
 
 	draw(x, y) {
-		console.log('graph', x, y)
 		graph.plot2d([x, this.start + this.axis - y * this.scale - 1], this.color)
 		graph.ctx.clearRect(0, this.start, graph.width, graph.fontSize)
 		graph.ctx.fillText(`${this.name}: ${y.toFixed(1)}`, 5, this.start + graph.fontSize - 1)

@@ -38,7 +38,6 @@ class Drone {
 		for (let index = 0; index < this.motorFactors.length; index++) {
 			this.motorFactors[index] = 1 + (Math.random() - 0.5) * motorImprecisionPercent / 100
 		}
-		console.log(`motor factors: ${this.motorFactors}`)
 	}
 
 	update(dt) {
@@ -93,16 +92,13 @@ class Drone {
 	computeRotationalAccels() {
 		const yawTorque = yawFactor * (this.forces[0] - this.forces[1] + this.forces[2] - this.forces[3])
 		const pitchTorque = radius * (this.forces[0] - this.forces[1] - this.forces[2] + this.forces[3])
-		if (pitchTorque) console.log(`pitch torque: ${pitchTorque}`)
 		const rollTorque = radius * (this.forces[0] + this.forces[1] - this.forces[2] - this.forces[3])
 		const yawWind = (this.wind.strength[0] + this.wind.strength[1]) / 80
 		const pitchWind = this.wind.strength[1] / 80
 		const rollWind = this.wind.strength[2] / 80
 		const yawAccel = yawTorque / yawMoment + yawWind
 		const pitchAccel = pitchTorque / pitchMoment + pitchWind
-		if (pitchAccel) console.log(`pitch accel: ${pitchAccel * 180 / Math.PI} deg/s2`)
 		const rollAccel = rollTorque / rollMoment + rollWind
-		if (rollAccel) console.log(`roll accel: ${rollAccel * 180 / Math.PI} deg/s2`)
 		const accels = [yawAccel, pitchAccel, rollAccel]
 		const drag = this.dragComputer.computeDrag([this.yaw.speed, this.pitch.speed, this.roll.speed])
 		return sum(accels, drag)
@@ -242,9 +238,6 @@ class Propulsion {
 	computeForces(dt) {
 		const pwms = this.computePwms(dt)
 		const averagePwm = pwms.reduce((a, b) => a+b) / pwms.length
-		if (pwms.some(pwm => pwm != averagePwm)) {
-			console.log(pwms)
-		}
 		return pwms.map(pwm => this.convertPwmToThrust(pwm))
 	}
 
