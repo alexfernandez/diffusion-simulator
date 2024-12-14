@@ -35,6 +35,9 @@ window.onload = () => {
 	document.getElementById('p2value').oninput = resetAndRun
 	document.getElementById('i2value').oninput = resetAndRun
 	document.getElementById('d2value').oninput = resetAndRun
+	document.getElementById('yaw').oninput = resetAndRun
+	document.getElementById('pitch').oninput = resetAndRun
+	document.getElementById('roll').oninput = resetAndRun
 
 }
 

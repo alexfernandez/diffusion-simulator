@@ -60,14 +60,21 @@
 				<label for="d2value">d value</label>
 				<input type="number" name="d2show" min="0" max="4" value="0" disabled />
 			</fieldset>
-			<label for="particles">Yaw (degrees)</label>
-			<input type="number" id="yaw" value="1">
+			<fieldset>
+				<legend>Angles:</legend>
+				<label for="particles">Yaw (degrees)</label>
+				<input type="range" id="yaw" min="0" max="360" value="1" step="1" onchange="this.form.yawshow.value=this.value" />
+				<input type="number" name="yawshow" min="0" max="360" value="1" disabled />
+				<br>
+				<label for="speed">Pitch (degrees)</label>
+				<input type="range" id="pitch" min="0" max="360" value="0" step="1" onchange="this.form.pitchshow.value=this.value" />
+				<input type="number" name="pitchshow" min="0" max="360" value="0" disabled />
+				<br>
+				<label for="speed">Roll (degrees)</label>
+				<input type="range" id="roll" min="0" max="360" value="0" step="1" onchange="this.form.rollshow.value=this.value" />
+				<input type="number" name="rollshow" min="0" max="360" value="0" disabled />
+			</fieldset>
 			<br>
-			<label for="speed">Pitch (degrees)</label>
-			<input type="number" id="pitch" value="0">
-			<br>
-			<label for="speed">Roll (degrees)</label>
-			<input type="number" id="roll" value="0">
 			<br>
 			<label for="wind">Wind</label>
 			<input type="checkbox" id="wind">
