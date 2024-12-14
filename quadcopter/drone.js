@@ -93,13 +93,16 @@ class Drone {
 	computeRotationalAccels() {
 		const yawTorque = yawFactor * (this.forces[0] - this.forces[1] + this.forces[2] - this.forces[3])
 		const pitchTorque = radius * (this.forces[0] - this.forces[1] - this.forces[2] + this.forces[3])
+		if (pitchTorque) console.log(`pitch torque: ${pitchTorque}`)
 		const rollTorque = radius * (this.forces[0] + this.forces[1] - this.forces[2] - this.forces[3])
 		const yawWind = (this.wind.strength[0] + this.wind.strength[1]) / 80
 		const pitchWind = this.wind.strength[1] / 80
 		const rollWind = this.wind.strength[2] / 80
 		const yawAccel = yawTorque / yawMoment + yawWind
 		const pitchAccel = pitchTorque / pitchMoment + pitchWind
+		if (pitchAccel) console.log(`pitch accel: ${pitchAccel * 180 / Math.PI} deg/s2`)
 		const rollAccel = rollTorque / rollMoment + rollWind
+		if (rollAccel) console.log(`roll accel: ${rollAccel * 180 / Math.PI} deg/s2`)
 		const accels = [yawAccel, pitchAccel, rollAccel]
 		const drag = this.dragComputer.computeDrag([this.yaw.speed, this.pitch.speed, this.roll.speed])
 		return sum(accels, drag)
@@ -219,15 +222,15 @@ class DragComputer {
 
 const heightPidWeightsSpeed = [1, 0, 0]
 const heightPidWeightsAccel = [1, 0, 0]
-const anglePidWeightsSpeed = [0.01, 0, 0]
-const anglePidWeightsAccel = [0.01, 0, 0]
+const anglePidWeightsSpeed = [0.5, 0, 0]
+const anglePidWeightsAccel = [1, 0, 0]
 
 class Propulsion {
 	constructor(drone, heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.drone = drone
 		this.heightComputer = new DoublePidComputer(heightTarget, heightPidWeightsSpeed, heightPidWeightsAccel)
 		this.yawComputer = new DoublePidComputer(yawTarget, anglePidWeightsSpeed, anglePidWeightsAccel)
-		this.pitchComputer = new PidComputer(pitchTarget, anglePidWeightsSpeed)
+		this.pitchComputer = new DoublePidComputer(pitchTarget, anglePidWeightsSpeed, anglePidWeightsAccel)
 		this.rollComputer = new PidComputer(rollTarget, anglePidWeightsSpeed)
 	}
 
@@ -265,9 +268,9 @@ class Propulsion {
 		const zValue = this.drone.pos.getValue(2)
 		const zAccel = this.heightComputer.computeDoublePid(zValue, dt)
 		// in the yaw axis only a small portion of the motor force goes to torque
-		const yawAccel = 0.01 //this.yawComputer.computeDoublePid(this.drone.yaw, dt)
+		const yawAccel = 0 //this.yawComputer.computeDoublePid(this.drone.yaw, dt)
 		//this.yawComputer.display()
-		const pitchAccel = 0 //this.pitchComputer.computePid(this.drone.pitch.distance, dt)
+		const pitchAccel = this.pitchComputer.computeDoublePid(this.drone.pitch, dt)
 		const rollAccel = 0 //this.rollComputer.computePid(this.drone.roll.distance, dt)
 		const yawTorque = yawAccel * yawMoment
 		const pitchTorque = pitchAccel * pitchMoment
