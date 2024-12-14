@@ -229,7 +229,7 @@ class Propulsion {
 		this.heightComputer = new DoublePidComputer(heightTarget, pidWeightsSpeed, pidWeightsAccel)
 		this.yawComputer = new DoublePidComputer(yawTarget, pidWeightsSpeed, pidWeightsAccel)
 		this.pitchComputer = new DoublePidComputer(pitchTarget, pidWeightsSpeed, pidWeightsAccel)
-		this.rollComputer = new PidComputer(rollTarget, pidWeightsSpeed)
+		this.rollComputer = new DoublePidComputer(rollTarget, pidWeightsSpeed, pidWeightsAccel)
 	}
 
 	computeForces(dt) {
@@ -265,7 +265,7 @@ class Propulsion {
 		const yawAccel = this.yawComputer.computeDoublePid(this.drone.yaw, dt)
 		//this.yawComputer.display()
 		const pitchAccel = this.pitchComputer.computeDoublePid(this.drone.pitch, dt)
-		const rollAccel = 0 //this.rollComputer.computePid(this.drone.roll.distance, dt)
+		const rollAccel = this.rollComputer.computeDoublePid(this.drone.roll, dt)
 		const yawTorque = yawAccel * yawMoment
 		const pitchTorque = pitchAccel * pitchMoment
 		const rollTorque = rollAccel * rollMoment
