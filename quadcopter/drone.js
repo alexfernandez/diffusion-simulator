@@ -38,6 +38,7 @@ class Drone {
 		for (let index = 0; index < this.motorFactors.length; index++) {
 			this.motorFactors[index] = 1 + (Math.random() - 0.5) * motorImprecisionPercent / 100
 		}
+		console.log(this.motorFactors)
 	}
 
 	update(dt) {
