@@ -222,18 +222,16 @@ class DragComputer {
 	}
 }
 
-const heightPidWeightsSpeed = [1, 0, 0]
-const heightPidWeightsAccel = [1, 0, 0]
-const anglePidWeightsSpeed = [0.5, 0, 0]
-const anglePidWeightsAccel = [1, 0, 0]
+const pidWeightsSpeed = [0.5, 0, 0]
+const pidWeightsAccel = [1, 0, 0]
 
 class Propulsion {
 	constructor(drone, heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.drone = drone
-		this.heightComputer = new DoublePidComputer(heightTarget, heightPidWeightsSpeed, heightPidWeightsAccel)
-		this.yawComputer = new DoublePidComputer(yawTarget, anglePidWeightsSpeed, anglePidWeightsAccel)
-		this.pitchComputer = new DoublePidComputer(pitchTarget, anglePidWeightsSpeed, anglePidWeightsAccel)
-		this.rollComputer = new PidComputer(rollTarget, anglePidWeightsSpeed)
+		this.heightComputer = new DoublePidComputer(heightTarget, pidWeightsSpeed, pidWeightsAccel)
+		this.yawComputer = new DoublePidComputer(yawTarget, pidWeightsSpeed, pidWeightsAccel)
+		this.pitchComputer = new DoublePidComputer(pitchTarget, pidWeightsSpeed, pidWeightsAccel)
+		this.rollComputer = new PidComputer(rollTarget, pidWeightsSpeed)
 	}
 
 	computeForces(dt) {
