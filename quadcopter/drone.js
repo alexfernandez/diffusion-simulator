@@ -125,6 +125,11 @@ class Drone {
 		const accelEnd = sum(distances, this.convertToInertial(accel))
 		screen.line3d(distances, accelEnd, 'red')
 		this.wind.draw()
+		this.drawGraph()
+	}
+
+	drawGraph() {
+		const distances = this.pos.getDistances()
 		const angles = [this.yaw, this.pitch, this.roll].map(angle => graph.displayDegrees(angle.distance))
 		graph.draw([distances[2], ...angles])
 	}

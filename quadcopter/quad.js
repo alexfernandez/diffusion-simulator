@@ -12,6 +12,7 @@ let yawTarget, pitchTarget, rollTarget, windActive, motorImprecisionPercent
 
 // screen
 let updater, screen, graph
+let autorun
 
 window.onload = () => {
 	screen = new Screen()
@@ -19,10 +20,9 @@ window.onload = () => {
 	resetSimulation()
 	screen.draw()
 	graph.clear()
-	if (getCheckbox('autorun')) {
-		console.log('running')
-		run()
-	}
+	autorun = getCheckbox('autorun')
+	console.log('running')
+	run()
 	document.getElementById('run').onclick = run
 	document.getElementById('pause').onclick = pause
 	document.getElementById('reset').onclick = reset
@@ -31,13 +31,26 @@ window.onload = () => {
 function run() {
 	readParameters()
 	if (updater) return
-	updater = window.setInterval(() => {
+	if (autorun) {
+		runLoop()
+	} else {
+		updater = window.setInterval(runLoop, dt * 1000)
+	}
+}
+
+function runLoop() {
+	while (!drone.isFinished(time)) {
 		update(dt)
-		screen.draw()
-		if (drone.isFinished(time)) {
-			pause()
+		if (autorun) {
+			drone.drawGraph()
+		} else {
+			screen.draw()
 		}
-	}, dt * 1000)
+		if (!autorun) {
+			return
+		}
+	}
+	pause()
 }
 
 function pause() {
