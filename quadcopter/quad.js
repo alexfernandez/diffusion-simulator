@@ -60,6 +60,7 @@ function runLoop() {
 			return
 		}
 	}
+	screen.draw()
 	pause()
 }
 
