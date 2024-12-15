@@ -36,8 +36,8 @@ class Drone {
 	forces = []
 	motorFactors = new Array(4)
 
-	constructor(heightTarget, yawTarget, pitchTarget, rollTarget) {
-		this.propulsion = new Propulsion(this, heightTarget, yawTarget, pitchTarget, rollTarget)
+	constructor() {
+		this.propulsion = new Propulsion(this)
 		for (let index = 0; index < this.motorFactors.length; index++) {
 			this.motorFactors[index] = 1 + (Math.random() - 0.5) * parameters.motorImprecisionPercent / 100
 		}
@@ -232,7 +232,7 @@ class Propulsion {
 
 // eslint-disable-next-line no-unused-vars
 class Parameters {
-	heightTarget = 0
+	heightTarget = 1
 	yawTarget = 0
 	pitchTarget = 0
 	rollTarget = 0

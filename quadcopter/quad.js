@@ -94,12 +94,12 @@ function readParameters() {
 	parameters.rollTarget = getDegrees('roll')
 	parameters.motorImprecisionPercent = getParameter('motor-imprecision')
 	parameters.windActive = getCheckbox('wind')
-	parameters.pidWeightsSpeed.p1value = getParameter('p1value')
-	parameters.pidWeightsSpeed.i1value = getParameter('i1value')
-	parameters.pidWeightsSpeed.d1value = getParameter('d1value')
-	parameters.pidWeightsAccel.p2value = getParameter('p2value')
-	parameters.pidWeightsAccel.i2value = getParameter('i2value')
-	parameters.pidWeightsAccel.d2value = getParameter('d2value')
+	parameters.pidWeightsSpeed[0] = getParameter('p1value')
+	parameters.pidWeightsSpeed[1] = getParameter('i1value')
+	parameters.pidWeightsSpeed[2] = getParameter('d1value')
+	parameters.pidWeightsAccel[0] = getParameter('p2value')
+	parameters.pidWeightsAccel[1] = getParameter('i2value')
+	parameters.pidWeightsAccel[2] = getParameter('d2value')
 	autorun = getCheckbox('autorun')
 }
 
