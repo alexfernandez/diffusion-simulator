@@ -8,22 +8,26 @@ const timeScale = 1/dt
 // drone characterization
 let drone
 const heightTarget = 1
-let yawTarget, pitchTarget, rollTarget, windActive, motorImprecisionPercent
-let pidWeightsSpeed = [0.5, 0, 0]
-let pidWeightsAccel = [1, 0, 0]
+let yawTarget, pitchTarget, rollTarget
+window.windActive = false
+window.motorImprecisionPercent = 0
+window.pidWeightsSpeed = [0.5, 0, 0]
+window.pidWeightsAccel = [1, 0, 0]
 
 
 // screen
-let updater, screen, graph
-let autorun
+let updater = null
+window.screen = null
+window.graph = null
+window.autorun = false
 
 window.onload = () => {
-	screen = new Screen()
-	graph = new Graph()
+	window.screen = new Screen()
+	window.graph = new Graph()
 	resetSimulation()
-	screen.draw()
-	graph.clear()
-	autorun = getCheckbox('autorun')
+	window.screen.draw()
+	window.graph.clear()
+	window.autorun = getCheckbox('autorun')
 	document.getElementById('run').onclick = run
 	document.getElementById('pause').onclick = pause
 	document.getElementById('reset').onclick = reset
@@ -43,7 +47,7 @@ window.onload = () => {
 function run() {
 	readParameters()
 	if (updater) return
-	if (autorun) {
+	if (window.autorun) {
 		runLoop()
 	} else {
 		updater = window.setInterval(runLoop, dt * 1000)
@@ -53,12 +57,12 @@ function run() {
 function runLoop() {
 	while (!drone.isFinished(time)) {
 		update(dt)
-		if (autorun) {
+		if (window.autorun) {
 			drone.drawGraph()
 		} else {
-			screen.draw()
+			window.screen.draw()
 		}
-		if (!autorun) {
+		if (!window.autorun) {
 			return
 		}
 	}
@@ -74,8 +78,8 @@ function pause() {
 function reset() {
 	pause()
 	resetSimulation()
-	screen.draw()
-	graph.clear()
+	window.screen.draw()
+	window.graph.clear()
 }
 
 function resetAndRun() {
@@ -86,7 +90,7 @@ function resetAndRun() {
 function resetSimulation() {
 	readParameters()
 	time = 0
-	drone = new Drone(heightTarget, yawTarget, pitchTarget, rollTarget)
+	drone = window.createDrone(heightTarget, yawTarget, pitchTarget, rollTarget)
 	console.log('reset')
 }
 
@@ -94,17 +98,17 @@ function readParameters() {
 	yawTarget = getDegrees('yaw')
 	pitchTarget = getDegrees('pitch')
 	rollTarget = getDegrees('roll')
-	motorImprecisionPercent = getParameter('motor-imprecision')
-	windActive = getCheckbox('wind')
+	window.motorImprecisionPercent = getParameter('motor-imprecision')
+	window.windActive = getCheckbox('wind')
 	const p1value = getParameter('p1value')
 	const i1value = getParameter('i1value')
 	const d1value = getParameter('d1value')
-	pidWeightsSpeed = [p1value, i1value, d1value]
+	window.pidWeightsSpeed = [p1value, i1value, d1value]
 	const p2value = getParameter('p2value')
 	const i2value = getParameter('i2value')
 	const d2value = getParameter('d2value')
-	pidWeightsAccel = [p2value, i2value, d2value]
-	autorun = getCheckbox('autorun')
+	window.pidWeightsAccel = [p2value, i2value, d2value]
+	window.autorun = getCheckbox('autorun')
 }
 
 function getDegrees(name) {
@@ -261,14 +265,14 @@ class Subgraph {
 	}
 
 	clear() {
-		graph.line2d([0, this.start], [graph.width, this.start], 'grey')
-		graph.line2d([0, this.start + this.axis], [graph.width, this.start + this.axis], this.color)
+		window.graph.line2d([0, this.start], [window.graph.width, this.start], 'grey')
+		window.graph.line2d([0, this.start + this.axis], [window.graph.width, this.start + this.axis], this.color)
 	}
 
 	draw(x, y) {
-		graph.plot2d([x, this.start + this.axis - y * this.scale - 1], this.color)
-		graph.ctx.clearRect(0, this.start, graph.width, graph.fontSize)
-		graph.ctx.fillText(`${this.name}: ${y.toFixed(1)}`, 5, this.start + graph.fontSize - 1)
+		window.graph.plot2d([x, this.start + this.axis - y * this.scale - 1], this.color)
+		window.graph.ctx.clearRect(0, this.start, window.graph.width, window.graph.fontSize)
+		window.graph.ctx.fillText(`${this.name}: ${y.toFixed(1)}`, 5, this.start + window.graph.fontSize - 1)
 	}
 }
 

@@ -1,5 +1,6 @@
 'use strict'
 
+
 // drone characterization
 const size = 0.075
 const radius = size * Math.sqrt(2) / 2
@@ -36,7 +37,7 @@ class Drone {
 	constructor(heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.propulsion = new Propulsion(this, heightTarget, yawTarget, pitchTarget, rollTarget)
 		for (let index = 0; index < this.motorFactors.length; index++) {
-			this.motorFactors[index] = 1 + (Math.random() - 0.5) * motorImprecisionPercent / 100
+			this.motorFactors[index] = 1 + (Math.random() - 0.5) * window.motorImprecisionPercent / 100
 		}
 		console.log(this.motorFactors)
 	}
@@ -127,8 +128,8 @@ class Drone {
 
 	drawGraph() {
 		const distances = this.pos.getDistances()
-		const angles = [this.yaw, this.pitch, this.roll].map(angle => graph.displayDegrees(angle.distance))
-		graph.draw([distances[2], ...angles])
+		const angles = [this.yaw, this.pitch, this.roll].map(angle => window.graph.displayDegrees(angle.distance))
+		window.graph.draw([distances[2], ...angles])
 	}
 
 	computeSegments() {
@@ -170,6 +171,8 @@ class Drone {
 	}
 }
 
+window.createDrone = (...args) => new Drone(...args)
+
 class Wind {
 	strength = [0, 0, 0]
 	maxStrength = [0.1, 0.1, 0.01]
@@ -179,7 +182,7 @@ class Wind {
 	drawingScale = 3
 
 	update(dt) {
-		if (!windActive) {
+		if (!window.windActive) {
 			return
 		}
 		for (let index = 0; index < this.strength.length; index++) {
@@ -227,15 +230,14 @@ class DragComputer {
 class Propulsion {
 	constructor(drone, heightTarget, yawTarget, pitchTarget, rollTarget) {
 		this.drone = drone
-		this.heightComputer = new DoublePidComputer(heightTarget, pidWeightsSpeed, pidWeightsAccel)
-		this.yawComputer = new DoublePidComputer(yawTarget, pidWeightsSpeed, pidWeightsAccel)
-		this.pitchComputer = new DoublePidComputer(pitchTarget, pidWeightsSpeed, pidWeightsAccel)
-		this.rollComputer = new DoublePidComputer(rollTarget, pidWeightsSpeed, pidWeightsAccel)
+		this.heightComputer = new DoublePidComputer(heightTarget, window.pidWeightsSpeed, window.pidWeightsAccel)
+		this.yawComputer = new DoublePidComputer(yawTarget, window.pidWeightsSpeed, window.pidWeightsAccel)
+		this.pitchComputer = new DoublePidComputer(pitchTarget, window.pidWeightsSpeed, window.pidWeightsAccel)
+		this.rollComputer = new DoublePidComputer(rollTarget, window.pidWeightsSpeed, window.pidWeightsAccel)
 	}
 
 	computeForces(dt) {
 		const pwms = this.computePwms(dt)
-		const averagePwm = pwms.reduce((a, b) => a+b) / pwms.length
 		return pwms.map(pwm => this.convertPwmToThrust(pwm))
 	}
 
