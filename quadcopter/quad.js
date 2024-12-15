@@ -1,5 +1,7 @@
 'use strict'
 
+/* global Drone, parameters */
+
 // time
 const dt = 0.1
 let time = 0
@@ -7,17 +9,18 @@ const timeScale = 1/dt
 
 // screen
 let updater = null
-window.screen = null
-window.graph = null
 let autorun = false
+let drone = null
+let screen = null
+let graph = null
 
 
 window.onload = () => {
-	window.screen = new Screen()
-	window.graph = new Graph()
+	screen = new Screen()
+	graph = new Graph()
 	resetSimulation()
-	window.screen.draw()
-	window.graph.clear()
+	screen.draw()
+	graph.clear()
 	autorun = getCheckbox('autorun')
 	document.getElementById('run').onclick = run
 	document.getElementById('pause').onclick = pause
@@ -46,12 +49,12 @@ function run() {
 }
 
 function runLoop() {
-	while (!window.drone.isFinished(time)) {
+	while (!drone.isFinished(time)) {
 		update(dt)
 		if (autorun) {
-			window.drone.drawGraph()
+			drone.drawGraph()
 		} else {
-			window.screen.draw()
+			screen.draw()
 		}
 		if (!autorun) {
 			return
@@ -69,8 +72,8 @@ function pause() {
 function reset() {
 	pause()
 	resetSimulation()
-	window.screen.draw()
-	window.graph.clear()
+	screen.draw()
+	graph.clear()
 }
 
 function resetAndRun() {
@@ -81,24 +84,22 @@ function resetAndRun() {
 function resetSimulation() {
 	readParameters()
 	time = 0
-	window.recreateDrone()
+	drone = new Drone()
 	console.log('reset')
 }
 
 function readParameters() {
-	window.parameters.yawTarget = getDegrees('yaw')
-	window.parameters.pitchTarget = getDegrees('pitch')
-	window.parameters.rollTarget = getDegrees('roll')
-	window.parameters.motorImprecisionPercent = getParameter('motor-imprecision')
-	window.parameters.windActive = getCheckbox('wind')
-	const p1value = getParameter('p1value')
-	const i1value = getParameter('i1value')
-	const d1value = getParameter('d1value')
-	window.parameters.pidWeightsSpeed = [p1value, i1value, d1value]
-	const p2value = getParameter('p2value')
-	const i2value = getParameter('i2value')
-	const d2value = getParameter('d2value')
-	window.parameters.pidWeightsAccel = [p2value, i2value, d2value]
+	parameters.yawTarget = getDegrees('yaw')
+	parameters.pitchTarget = getDegrees('pitch')
+	parameters.rollTarget = getDegrees('roll')
+	parameters.motorImprecisionPercent = getParameter('motor-imprecision')
+	parameters.windActive = getCheckbox('wind')
+	parameters.pidWeightsSpeed.p1value = getParameter('p1value')
+	parameters.pidWeightsSpeed.i1value = getParameter('i1value')
+	parameters.pidWeightsSpeed.d1value = getParameter('d1value')
+	parameters.pidWeightsAccel.p2value = getParameter('p2value')
+	parameters.pidWeightsAccel.i2value = getParameter('i2value')
+	parameters.pidWeightsAccel.d2value = getParameter('d2value')
 	autorun = getCheckbox('autorun')
 }
 
@@ -116,7 +117,7 @@ function getCheckbox(name) {
 
 function update(dt) {
 	const newTime = time + dt
-	window.drone.update(dt)
+	drone.update(dt)
 	time = newTime
 }
 
@@ -165,13 +166,13 @@ class Screen extends Canvas {
 	draw() {
 		this.ctx.clearRect(0, this.height, this.width, this.height + this.fontSize)
 		this.ctx.clearRect(0, 0, this.width, this.height)
-		window.drone.draw()
+		drone.draw()
 		this.drawHorizon()
 		const texts = [
 			`t: ${time.toFixed(1)} s`,
-			`pos: ${this.displayVector(window.drone.pos.getDistances())}`,
-			`vel: ${this.displayVector(window.drone.pos.getSpeed())}`,
-			`acc: ${this.displayVector(window.drone.pos.getAccel())}`,
+			`pos: ${this.displayVector(drone.pos.getDistances())}`,
+			`vel: ${this.displayVector(drone.pos.getSpeed())}`,
+			`acc: ${this.displayVector(drone.pos.getAccel())}`,
 		]
 		this.ctx.fillText(texts.join(', '), 1, this.height + this.fontSize - 1)
 	}
@@ -256,14 +257,14 @@ class Subgraph {
 	}
 
 	clear() {
-		window.graph.line2d([0, this.start], [window.graph.width, this.start], 'grey')
-		window.graph.line2d([0, this.start + this.axis], [window.graph.width, this.start + this.axis], this.color)
+		graph.line2d([0, this.start], [graph.width, this.start], 'grey')
+		graph.line2d([0, this.start + this.axis], [graph.width, this.start + this.axis], this.color)
 	}
 
 	draw(x, y) {
-		window.graph.plot2d([x, this.start + this.axis - y * this.scale - 1], this.color)
-		window.graph.ctx.clearRect(0, this.start, window.graph.width, window.graph.fontSize)
-		window.graph.ctx.fillText(`${this.name}: ${y.toFixed(1)}`, 5, this.start + window.graph.fontSize - 1)
+		graph.plot2d([x, this.start + this.axis - y * this.scale - 1], this.color)
+		graph.ctx.clearRect(0, this.start, graph.width, graph.fontSize)
+		graph.ctx.fillText(`${this.name}: ${y.toFixed(1)}`, 5, this.start + graph.fontSize - 1)
 	}
 }
 
