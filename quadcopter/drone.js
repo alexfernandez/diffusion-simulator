@@ -171,7 +171,9 @@ class Drone {
 	}
 }
 
-window.createDrone = (...args) => new Drone(...args)
+window.drone = new Drone()
+
+window.recreateDrone = () => window.drone = new Drone()
 
 class Wind {
 	strength = [0, 0, 0]
@@ -283,6 +285,19 @@ class Propulsion {
 		return time > 30
 	}
 }
+
+class Parameters {
+	heightTarget = 0
+	yawTarget = 0
+	pitchTarget = 0
+	rollTarget = 0
+	windActive = false
+	motorImprecisionPercent = 0
+	pidWeightsSpeed = [0.5, 0, 0]
+	pidWeightsAccel = [1, 0, 0]
+}
+
+window.parameters = new Parameters()
 
 class DoublePidComputer {
 	speedComputer

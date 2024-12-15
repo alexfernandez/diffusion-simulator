@@ -5,21 +5,12 @@ const dt = 0.1
 let time = 0
 const timeScale = 1/dt
 
-// drone characterization
-let drone
-const heightTarget = 1
-let yawTarget, pitchTarget, rollTarget
-window.windActive = false
-window.motorImprecisionPercent = 0
-window.pidWeightsSpeed = [0.5, 0, 0]
-window.pidWeightsAccel = [1, 0, 0]
-
-
 // screen
 let updater = null
 window.screen = null
 window.graph = null
-window.autorun = false
+let autorun = false
+
 
 window.onload = () => {
 	window.screen = new Screen()
@@ -27,7 +18,7 @@ window.onload = () => {
 	resetSimulation()
 	window.screen.draw()
 	window.graph.clear()
-	window.autorun = getCheckbox('autorun')
+	autorun = getCheckbox('autorun')
 	document.getElementById('run').onclick = run
 	document.getElementById('pause').onclick = pause
 	document.getElementById('reset').onclick = reset
@@ -47,7 +38,7 @@ window.onload = () => {
 function run() {
 	readParameters()
 	if (updater) return
-	if (window.autorun) {
+	if (autorun) {
 		runLoop()
 	} else {
 		updater = window.setInterval(runLoop, dt * 1000)
@@ -55,14 +46,14 @@ function run() {
 }
 
 function runLoop() {
-	while (!drone.isFinished(time)) {
+	while (!window.drone.isFinished(time)) {
 		update(dt)
-		if (window.autorun) {
-			drone.drawGraph()
+		if (autorun) {
+			window.drone.drawGraph()
 		} else {
 			window.screen.draw()
 		}
-		if (!window.autorun) {
+		if (!autorun) {
 			return
 		}
 	}
@@ -90,25 +81,25 @@ function resetAndRun() {
 function resetSimulation() {
 	readParameters()
 	time = 0
-	drone = window.createDrone(heightTarget, yawTarget, pitchTarget, rollTarget)
+	window.recreateDrone()
 	console.log('reset')
 }
 
 function readParameters() {
-	yawTarget = getDegrees('yaw')
-	pitchTarget = getDegrees('pitch')
-	rollTarget = getDegrees('roll')
-	window.motorImprecisionPercent = getParameter('motor-imprecision')
-	window.windActive = getCheckbox('wind')
+	window.parameters.yawTarget = getDegrees('yaw')
+	window.parameters.pitchTarget = getDegrees('pitch')
+	window.parameters.rollTarget = getDegrees('roll')
+	window.parameters.motorImprecisionPercent = getParameter('motor-imprecision')
+	window.parameters.windActive = getCheckbox('wind')
 	const p1value = getParameter('p1value')
 	const i1value = getParameter('i1value')
 	const d1value = getParameter('d1value')
-	window.pidWeightsSpeed = [p1value, i1value, d1value]
+	window.parameters.pidWeightsSpeed = [p1value, i1value, d1value]
 	const p2value = getParameter('p2value')
 	const i2value = getParameter('i2value')
 	const d2value = getParameter('d2value')
-	window.pidWeightsAccel = [p2value, i2value, d2value]
-	window.autorun = getCheckbox('autorun')
+	window.parameters.pidWeightsAccel = [p2value, i2value, d2value]
+	autorun = getCheckbox('autorun')
 }
 
 function getDegrees(name) {
@@ -125,7 +116,7 @@ function getCheckbox(name) {
 
 function update(dt) {
 	const newTime = time + dt
-	drone.update(dt)
+	window.drone.update(dt)
 	time = newTime
 }
 
@@ -174,13 +165,13 @@ class Screen extends Canvas {
 	draw() {
 		this.ctx.clearRect(0, this.height, this.width, this.height + this.fontSize)
 		this.ctx.clearRect(0, 0, this.width, this.height)
-		drone.draw()
+		window.drone.draw()
 		this.drawHorizon()
 		const texts = [
 			`t: ${time.toFixed(1)} s`,
-			`pos: ${this.displayVector(drone.pos.getDistances())}`,
-			`vel: ${this.displayVector(drone.pos.getSpeed())}`,
-			`acc: ${this.displayVector(drone.pos.getAccel())}`,
+			`pos: ${this.displayVector(window.drone.pos.getDistances())}`,
+			`vel: ${this.displayVector(window.drone.pos.getSpeed())}`,
+			`acc: ${this.displayVector(window.drone.pos.getAccel())}`,
 		]
 		this.ctx.fillText(texts.join(', '), 1, this.height + this.fontSize - 1)
 	}
