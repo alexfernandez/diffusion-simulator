@@ -32,6 +32,7 @@ window.onload = () => {
 }
 
 function run() {
+	drone.algorithm = getRadioButton('algorithm')
 	const p1value = getParameter('p1value')
 	const i1value = getParameter('i1value')
 	const d1value = getParameter('d1value')
@@ -59,6 +60,11 @@ function resetSimulation() {
 function getParameter(name) {
 	return parseFloat(document.getElementById(name).value)
 }
+
+function getRadioButton(name) {
+	return document.querySelector(`input[name="${name}"]:checked`).value
+}
+
 
 function update(dt) {
 	const newTime = time + dt
@@ -105,7 +111,7 @@ class Drone {
 	}
 
 	computeAccel(dt) {
-		const accel = this.computePid(dt)
+		const accel = this.computeAlgorithm(dt)
 		const limitedMax = this.limitMax(accel)
 		return limitedMax
 	}
@@ -120,7 +126,20 @@ class Drone {
 		return accel
 	}
 
+	computeAlgorithm(dt) {
+		if (this.algorithm == 'pid') {
+			return this.computePid(dt)
+		} else if (this.algorithm == 'double-pid') {
+			return this.computeDoublePid(dt)
+		}
+		return 0
+	}
+
 	computePid(dt) {
+		return this.posComputer.computePid(this.pos, dt)
+	}
+
+	computeDoublePid(dt) {
 		const targetSpeed = this.posComputer.computePid(this.pos, dt)
 		this.speedComputer.setPoint = targetSpeed
 		const targetAccel = this.speedComputer.computePid(this.speed, dt)
