@@ -2,8 +2,6 @@
 
 /* global gravity, parameters */
 
-const errorMargin = 0.1
-
 
 // eslint-disable-next-line no-unused-vars
 class Wind {
@@ -69,13 +67,16 @@ class DragComputer {
 class DoublePidComputer {
 	speedComputer
 	accelComputer
+	margin = 0
 
 	constructor(setPoint, margin) {
-		this.speedComputer = new PidComputer(setPoint, parameters.pidWeightsSpeed, margin)
-		this.accelComputer = new PidComputer(0, parameters.pidWeightsAccel, margin)
+		this.speedComputer = new PidComputer(setPoint, parameters.pidWeightsSpeed)
+		this.accelComputer = new PidComputer(0, parameters.pidWeightsAccel)
+		this.margin = margin
 	}
 
 	computeDoublePid(accelerated, dt) {
+		this.lastValue = accelerated
 		const targetSpeed = this.speedComputer.computePid(accelerated.distance, dt)
 		this.accelComputer.setPoint = targetSpeed
 		const accel = this.accelComputer.computePid(accelerated.speed, dt)
@@ -89,7 +90,7 @@ class DoublePidComputer {
 	}
 
 	isFinished() {
-		return this.speedComputer.isFinished() && this.accelComputer.isFinished()
+		return this.speedComputer.isWithinMargin(this.margin)
 	}
 }
 
@@ -101,10 +102,9 @@ class PidComputer {
 	lastVariable
 	lastComputed = 0
 
-	constructor(setPoint, weights, margin) {
+	constructor(setPoint, weights) {
 		this.setPoint = setPoint
 		this.weights = weights
-		this.margin = margin
 	}
 
 	computePid(processVariable, dt) {
@@ -120,15 +120,12 @@ class PidComputer {
 		return computed
 	}
 
-	display() {
-		console.log(`variable: ${this.lastVariable} -> ${this.setPoint}, computed: ${this.lastComputed}`)
+	isWithinMargin(margin) {
+		return (Math.abs(this.lastError) < margin)
 	}
 
-	isFinished() {
-		if (this.setPoint === 0) {
-			return (Math.abs(this.lastError) < this.margin)
-		}
-		return (Math.abs(this.lastError) < this.setPoint * errorMargin)
+	display() {
+		console.log(`variable: ${this.lastVariable} -> ${this.setPoint}, computed: ${this.lastComputed}`)
 	}
 }
 

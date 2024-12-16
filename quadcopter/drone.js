@@ -1,6 +1,6 @@
 'use strict'
 
-/* global AcceleratedDistance, AcceleratedVector, DragComputer, Wind, sum, scale, DoublePidComputer, graph */
+/* global AcceleratedDistance, AcceleratedVector, DragComputer, Wind, sum, scale, DoublePidComputer, graph, time */
 
 // drone characterization
 const size = 0.075
@@ -80,9 +80,10 @@ class Drone {
 		if (!this.propulsion.isFinished()) {
 			return
 		}
-		console.log('updating propulsion')
 		this.currentTarget += 1
-		this.propulsion = new Propulsion(this, this.targets[this.currentTarget])
+		const target = this.targets[this.currentTarget]
+		console.log(`t ${time}: updating propulsion to ${target}`)
+		this.propulsion = new Propulsion(this, target)
 	}
 
 	computeBroken(dt) {
@@ -197,9 +198,9 @@ class Propulsion {
 		this.drone = drone
 		this.target = target
 		this.heightComputer = new DoublePidComputer(target.heightTarget, 0.1)
-		this.yawComputer = new DoublePidComputer(target.yawTarget, 1)
-		this.pitchComputer = new DoublePidComputer(target.pitchTarget, 1)
-		this.rollComputer = new DoublePidComputer(target.rollTarget, 1)
+		this.yawComputer = new DoublePidComputer(target.yawTarget, 0.01)
+		this.pitchComputer = new DoublePidComputer(target.pitchTarget, 0.01)
+		this.rollComputer = new DoublePidComputer(target.rollTarget, 0.01)
 		this.timeTargetSeconds = target.timeTargetSeconds
 	}
 
@@ -278,7 +279,7 @@ class Parameters {
 			new Target(this.heightTarget, this.yawTarget, 0, 0),
 			new Target(this.heightTarget, this.yawTarget, -this.pitchTarget, 0),
 			new Target(this.heightTarget, this.yawTarget, 0, 0),
-			new Target(this.heightTarget, 0, 0, 0, 30),
+			new Target(this.heightTarget, this.yawTarget, 0, 0, 30),
 		]
 	}
 }
@@ -296,6 +297,10 @@ class Target {
 		this.pitchTarget = pitchTarget
 		this.rollTarget = rollTarget
 		this.timeTargetSeconds = timeTargetSeconds
+	}
+
+	toString() {
+		return `height ${this.heightTarget}, yaw ${this.yawTarget}, pitch ${this.pitchTarget}, roll ${this.rollTarget}, s ${this.timeTargetSeconds}`
 	}
 }
 
