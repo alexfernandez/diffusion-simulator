@@ -23,15 +23,17 @@
 		<h3>Tunable parameters</h3>
 			<fieldset>
 				<legend>Select algorithm:</legend>
-				<input type="radio" id="pid" name="algorithm" value="pid" checked>
+				<input type="radio" id="pid" name="algorithm" value="pid">
 				<label for="pid">pid</label>
-				<input type="radio" id="double-pid" name="algorithm" value="double-pid">
+				<input type="radio" id="double-pid" name="algorithm" value="double-pid" checked>
 				<label for="double-pid">double-pid</label>
+				<input type="radio" id="speed-pid" name="algorithm" value="speed-pid">
+				<label for="speed-pid">speed-pid</label>
 			</fieldset>
 
 			<fieldset>
-				<legend>Position PID:</legend>
-				<input type="range" id="p1value" name="p1value" min="0" max="4" value="0.1" step="0.01"
+				<legend>Speed PID:</legend>
+				<input type="range" id="p1value" name="p1value" min="0" max="4" value="1" step="0.01"
 					onchange="this.form.p1show.value = this.value" />
 				<label for="p1value">p value</label>
 				<input type="number" name="p1show" min="0" max="4" value="0.1" disabled />
@@ -41,14 +43,14 @@
 				<label for="i1value">i value</label>
 				<input type="number" name="i1show" min="0" max="4" value="0" disabled />
 				<br>
-				<input type="range" id="d1value" name="d1value" min="0" max="4" value="0.1" step="0.01"
+				<input type="range" id="d1value" name="d1value" min="0" max="4" value="1" step="0.01"
 					onchange="this.form.d1show.value=this.value" />
 				<label for="d1value">d value</label>
 				<input type="number" name="d1show" min="0" max="4" value="0.1" disabled />
 			</fieldset>
 			<br>
 			<fieldset>
-				<legend>Speed PID:</legend>
+				<legend>Acceleration PID:</legend>
 				<input type="range" id="p2value" name="p2value" min="0" max="4" value="0.1" step="0.01"
 					onchange="this.form.p2show.value = this.value" />
 				<label for="p2value">p value</label>

@@ -35,12 +35,12 @@ function run() {
 	const p1value = getParameter('p1value')
 	const i1value = getParameter('i1value')
 	const d1value = getParameter('d1value')
-	drone.posComputer.weights = [p1value, i1value, d1value]
+	drone.speedComputer.weights = [p1value, i1value, d1value]
 	const p2value = getParameter('p2value')
 	const i2value = getParameter('i2value')
 	const d2value = getParameter('d2value')
-	drone.speedComputer.weights = [p2value, i2value, d2value]
-	console.log(`pids weights: ${drone.posComputer.weights}, ${drone.speedComputer.weights}`)
+	drone.accelComputer.weights = [p2value, i2value, d2value]
+	console.log(`pids weights: ${drone.speedComputer.weights}, ${drone.accelComputer.weights}`)
 	while (time * timeScale < screen.width) {
 		update(dt)
 		screen.draw()
@@ -90,8 +90,8 @@ class Drone {
 	speed = 30
 	pos = 40
 	algorithm = 'none'
-	posComputer = new PidComputer(0, [0, 0, 0])
 	speedComputer = new PidComputer(0, [0, 0, 0])
+	accelComputer = new PidComputer(0, [0, 0, 0])
 
 	update(dt) {
 		const newAccel = this.computeAccel(dt)
@@ -117,13 +117,13 @@ class Drone {
 	}
 
 	computePid(dt) {
-		return this.posComputer.computePid(this.pos, dt)
+		return this.speedComputer.computePid(this.pos, dt)
 	}
 
 	computeDoublePid(dt) {
-		const targetSpeed = this.posComputer.computePid(this.pos, dt)
-		this.speedComputer.setPoint = targetSpeed
-		const targetAccel = this.speedComputer.computePid(this.speed, dt)
+		const targetSpeed = this.speedComputer.computePid(this.pos, dt)
+		this.accelComputer.setPoint = targetSpeed
+		const targetAccel = this.accelComputer.computePid(this.speed, dt)
 		console.log(`target speed: ${targetSpeed}, target accel: ${targetAccel}`)
 		return targetAccel
 	}
