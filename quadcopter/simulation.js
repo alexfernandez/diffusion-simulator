@@ -2,6 +2,8 @@
 
 /* global gravity, parameters */
 
+const errorMargin = 0.1
+
 
 // eslint-disable-next-line no-unused-vars
 class Wind {
@@ -68,9 +70,9 @@ class DoublePidComputer {
 	speedComputer
 	accelComputer
 
-	constructor(setPoint) {
-		this.speedComputer = new PidComputer(setPoint, parameters.pidWeightsSpeed)
-		this.accelComputer = new PidComputer(0, parameters.pidWeightsAccel)
+	constructor(setPoint, margin) {
+		this.speedComputer = new PidComputer(setPoint, parameters.pidWeightsSpeed, margin)
+		this.accelComputer = new PidComputer(0, parameters.pidWeightsAccel, margin)
 	}
 
 	computeDoublePid(accelerated, dt) {
@@ -85,6 +87,10 @@ class DoublePidComputer {
 		this.speedComputer.display()
 		this.accelComputer.display()
 	}
+
+	isFinished() {
+		return this.speedComputer.isFinished() && this.accelComputer.isFinished()
+	}
 }
 
 class PidComputer {
@@ -95,9 +101,10 @@ class PidComputer {
 	lastVariable
 	lastComputed = 0
 
-	constructor(setPoint, weights) {
+	constructor(setPoint, weights, margin) {
 		this.setPoint = setPoint
 		this.weights = weights
+		this.margin = margin
 	}
 
 	computePid(processVariable, dt) {
@@ -115,6 +122,13 @@ class PidComputer {
 
 	display() {
 		console.log(`variable: ${this.lastVariable} -> ${this.setPoint}, computed: ${this.lastComputed}`)
+	}
+
+	isFinished() {
+		if (this.setPoint === 0) {
+			return (this.lastError < this.margin)
+		}
+		return (this.lastError < this.setPoint * errorMargin)
 	}
 }
 

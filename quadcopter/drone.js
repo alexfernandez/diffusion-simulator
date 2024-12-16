@@ -35,9 +35,11 @@ class Drone {
 	wind = new Wind()
 	forces = []
 	motorFactors = new Array(4)
+	currentTarget = 0
 
 	constructor() {
-		this.propulsion = new Propulsion(this)
+		this.targets = parameters.getTargets()
+		this.propulsion = new Propulsion(this, this.targets[this.currentTarget])
 		for (let index = 0; index < this.motorFactors.length; index++) {
 			this.motorFactors[index] = 1 + (Math.random() - 0.5) * parameters.motorImprecisionPercent / 100
 		}
@@ -55,17 +57,31 @@ class Drone {
 		this.yaw.update(yawRot, dt)
 		this.pitch.update(pitchRot, dt)
 		this.roll.update(rollRot, dt)
-		const z = this.pos.getValue(2)
-		if (z.distance < 0) {
-			z.distance = 0
-			console.log(`crash: ${z.speed} > ${maxSpeed}?`)
-			if (Math.abs(z.speed) > maxSpeed) {
-				console.log(`leñaso`)
-				this.brokenSeparation = dt
-			}
-			z.speed = 0
-		}
+		this.checkCrash(dt)
 		this.wind.update(dt)
+		this.updatePropulsion()
+	}
+
+	checkCrash(dt) {
+		const z = this.pos.getValue(2)
+		if (z.distance >= 0) {
+			return
+		}
+		console.log(`crash: ${z.speed} > ${maxSpeed}?`)
+		z.distance = 0
+		if (Math.abs(z.speed) > maxSpeed) {
+			console.log(`leñaso`)
+			this.brokenSeparation = dt
+		}
+		z.speed = 0
+	}
+
+	updatePropulsion() {
+		if (!this.propulsion.isFinished()) {
+			return
+		}
+		this.currentTarget += 1
+		this.propulsion = new Propulsion(this, this.targets[this.currentTarget])
 	}
 
 	computeBroken(dt) {
@@ -174,12 +190,16 @@ class Drone {
 }
 
 class Propulsion {
-	constructor(drone) {
+	startMs = Date.now()
+
+	constructor(drone, target) {
 		this.drone = drone
-		this.heightComputer = new DoublePidComputer(parameters.heightTarget)
-		this.yawComputer = new DoublePidComputer(parameters.yawTarget)
-		this.pitchComputer = new DoublePidComputer(parameters.pitchTarget)
-		this.rollComputer = new DoublePidComputer(parameters.rollTarget)
+		this.target = target
+		this.heightComputer = new DoublePidComputer(target.heightTarget, 0.1)
+		this.yawComputer = new DoublePidComputer(target.yawTarget, 1)
+		this.pitchComputer = new DoublePidComputer(target.pitchTarget, 1)
+		this.rollComputer = new DoublePidComputer(target.rollTarget, 1)
+		this.timeTargetSeconds = target.timeTargetSeconds
 	}
 
 	computeForces(dt) {
@@ -224,18 +244,58 @@ class Propulsion {
 		const a4 = zAccel / 4 + (-rollTorque + pitchTorque) / (4 * mass * radius) - yawTorque / (4 * yawFactor)
 		return [a1, a2, a3, a4]
 	}
+
+	isFinished() {
+		if (this.timeTargetSeconds) {
+			const elapsedSeconds = (Date.now() - this.startMs) / 1000
+			return elapsedSeconds > this.timeTargetSeconds
+		}
+		if (!this.heightComputer.isFinished()) return false
+		if (!this.yawComputer.isFinished()) return false
+		if (!this.pitchComputer.isFinished()) return false
+		if (!this.rollComputer.isFinished()) return false
+		return true
+	}
 }
 
 // eslint-disable-next-line no-unused-vars
 class Parameters {
 	heightTarget = 1
 	yawTarget = 0
-	pitchTarget = 0
+	pitchTarget = 10
 	rollTarget = 0
 	windActive = false
 	motorImprecisionPercent = 0
 	pidWeightsSpeed = [0.5, 0, 0]
 	pidWeightsAccel = [1, 0, 0]
+
+	getTargets() {
+		return [
+			new Target(this.heightTarget, 0, 0, 0),
+			new Target(this.heightTarget, 0, this.pitchTarget, 0),
+			new Target(this.heightTarget, 0, 0, 0),
+			new Target(this.heightTarget, this.yawTarget, 0, 0),
+			new Target(this.heightTarget, this.yawTarget, this.pitchTarget, 0),
+			new Target(this.heightTarget, this.yawTarget, 0, 0),
+			new Target(this.heightTarget, 0, 0, 0, 30),
+		]
+	}
+}
+
+class Target {
+	heightTarget = 1
+	yawTarget = 0
+	pitchTarget = 0
+	rollTarget = 0
+	timeTargetSeconds = 0
+
+	constructor(heightTarget, yawTarget, pitchTarget, rollTarget, timeTargetSeconds = 0) {
+		this.heightTarget = heightTarget
+		this.yawTarget = yawTarget
+		this.pitchTarget = pitchTarget
+		this.rollTarget = rollTarget
+		this.timeTargetSeconds = timeTargetSeconds
+	}
 }
 
 const parameters = new Parameters()
