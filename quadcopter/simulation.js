@@ -126,9 +126,9 @@ class PidComputer {
 
 	isFinished() {
 		if (this.setPoint === 0) {
-			return (this.lastError < this.margin)
+			return (Math.abs(this.lastError) < this.margin)
 		}
-		return (this.lastError < this.setPoint * errorMargin)
+		return (Math.abs(this.lastError) < this.setPoint * errorMargin)
 	}
 }
 
