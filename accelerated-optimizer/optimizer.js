@@ -7,8 +7,6 @@ const timeScale = 10
 
 // drone characterization
 let drone
-const size = 0.075
-const mass = 0.03
 
 // drone movement
 const maxAccel = 10
@@ -90,12 +88,6 @@ class Drone {
 	accel = 0
 	speed = 30
 	pos = 40
-	dragComputer = new DragComputer()
-	errorSum = 0
-	lastError = 0
-	lastDiff = 0
-	lastAccel = 0
-	errorInterval = 0
 	algorithm = 'none'
 	posComputer = new PidComputer(0, [0, 0, 0])
 	speedComputer = new PidComputer(0, [0, 0, 0])
@@ -104,7 +96,6 @@ class Drone {
 		const newAccel = this.computeAccel(dt)
 		const newSpeed = this.speed + dt * newAccel
 		const newPos = this.pos + dt * newSpeed
-		this.lastAccel = this.accel
 		this.pos = newPos
 		this.speed = newSpeed
 		this.accel = newAccel
@@ -147,27 +138,11 @@ class Drone {
 		return targetAccel
 	}
 
-	computeDerivative(error) {
-		const derivative = error - this.lastError
-		this.lastError = error
-		return derivative
-	}
-
 	draw() {
 		const x = timeScale * time
 		screen.plot2d([x, screen.axis - this.accel - 1], 'red')
 		screen.plot2d([x, screen.first + screen.axis - this.speed - 1], 'green')
 		screen.plot2d([x, screen.second + screen.axis - this.pos - 1], 'blue')
-	}
-
-	computeSegments() {
-		const dist = size / 2
-		const coord1 = [-dist, -dist, 0]
-		const coord2 = [dist, -dist, 0]
-		const coord3 = [dist, dist, 0]
-		const coord4 = [-dist, dist, 0]
-		const endpoints = [coord1, coord2, coord3, coord4]
-		return endpoints.map(endpoint => this.convertEndpoint(endpoint))
 	}
 
 	convertEndpoint(endpoint) {
@@ -188,17 +163,6 @@ class Drone {
 		const yp = x * sy*cp + y * (sy*sp*sr - cy*cr) + z * (sy*sp*cr - cy*sr)
 		const zp = - x * sp + y * (cp*sr) + z * (cp*cr)
 		return [xp, yp, zp]
-	}
-}
-
-class DragComputer {
-	cd = 0.4
-	density = 1.2
-	area = size * size
-
-	compute(speed) {
-		const factor = -0.5 * this.density * this.cd * this.area / mass
-		return scale(speed, factor)
 	}
 }
 
