@@ -4,6 +4,7 @@
 const dt = 0.1
 let time = 0
 const timeScale = 10
+const maxTotalError = 1
 
 // drone characterization
 let drone
@@ -103,8 +104,7 @@ class Drone {
 
 	computeAccel(dt) {
 		const accel = this.computeAlgorithm(dt)
-		const limitedMax = limitMax(accel, maxAccel)
-		return limitedMax
+		return limitMax(accel, maxAccel)
 	}
 
 	computeAlgorithm(dt) {
@@ -173,7 +173,7 @@ class PidComputer {
 		const proportional = error
 		this.totalError += error
 		this.totalInterval += dt
-		const integral = this.totalError
+		const integral = limitMax(this.totalError, maxTotalError)
 		const derivative = (error - this.lastError) / dt
 		this.lastError = error
 		return proportional * this.weights[0] + integral * this.weights[1] + derivative * this.weights[2]
