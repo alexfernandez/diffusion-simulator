@@ -4,7 +4,7 @@
 const dt = 0.1
 let time = 0
 const timeScale = 10
-const maxTotalError = 1
+const maxTotalError = 4000
 
 // drone characterization
 let drone
@@ -124,7 +124,6 @@ class Drone {
 		const targetSpeed = this.speedComputer.computePid(this.pos, dt)
 		this.accelComputer.setPoint = targetSpeed
 		const targetAccel = this.accelComputer.computePid(this.speed, dt)
-		console.log(`target speed: ${targetSpeed}, target accel: ${targetAccel}`)
 		return targetAccel
 	}
 
