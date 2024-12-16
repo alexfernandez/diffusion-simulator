@@ -80,6 +80,7 @@ class Drone {
 		if (!this.propulsion.isFinished()) {
 			return
 		}
+		console.log('updating propulsion')
 		this.currentTarget += 1
 		this.propulsion = new Propulsion(this, this.targets[this.currentTarget])
 	}
@@ -272,10 +273,10 @@ class Parameters {
 	getTargets() {
 		return [
 			new Target(this.heightTarget, 0, 0, 0),
-			new Target(this.heightTarget, 0, this.pitchTarget, 0),
+			new Target(this.heightTarget, 0, -this.pitchTarget, 0),
 			new Target(this.heightTarget, 0, 0, 0),
 			new Target(this.heightTarget, this.yawTarget, 0, 0),
-			new Target(this.heightTarget, this.yawTarget, this.pitchTarget, 0),
+			new Target(this.heightTarget, this.yawTarget, -this.pitchTarget, 0),
 			new Target(this.heightTarget, this.yawTarget, 0, 0),
 			new Target(this.heightTarget, 0, 0, 0, 30),
 		]
