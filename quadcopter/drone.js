@@ -149,7 +149,7 @@ class Drone {
 	drawGraph() {
 		const distances = this.pos.getDistances()
 		const angles = [this.yaw, this.pitch, this.roll].map(angle => graph.displayDegrees(angle.distance))
-		graph.draw([distances[2], ...angles])
+		graph.draw([distances, ...angles])
 	}
 
 	computeSegments() {

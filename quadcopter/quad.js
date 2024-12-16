@@ -211,7 +211,7 @@ class Screen extends Canvas {
 
 class Graph extends Canvas {
 	// [name, color, scale]
-	specs = [['height', 'black', 20], ['yaw', 'red', 1], ['pitch', 'green', 1], ['roll', 'blue', 1]]
+	specs = [['pos', 'black', 5], ['yaw', 'red', 1], ['pitch', 'green', 1], ['roll', 'blue', 1]]
 	subgraphs = []
 
 	constructor() {
@@ -243,7 +243,7 @@ class Graph extends Canvas {
 		for (let index = 0; index < values.length; index++) {
 			const value = values[index]
 			const subgraph = this.subgraphs[index]
-			subgraph.draw(x, value)
+			subgraph.drawValue(x, value)
 		}
 	}
 }
@@ -262,10 +262,20 @@ class Subgraph {
 		graph.line2d([0, this.start + this.axis], [graph.width, this.start + this.axis], this.color)
 	}
 
+	drawValue(x, value) {
+		graph.ctx.clearRect(0, this.start, graph.width, graph.fontSize + 1)
+		if (!Array.isArray(value)) {
+			graph.ctx.fillText(`${this.name}: ${value.toFixed(1)}`, 5, this.start + graph.fontSize - 1)
+			return this.draw(x, value)
+		}
+		graph.ctx.fillText(`${this.name}: ${value.map(y => y.toFixed(1))}`, 5, this.start + graph.fontSize - 1)
+		for (const y of value) {
+			this.draw(x, y)
+		}
+	}
+
 	draw(x, y) {
 		graph.plot2d([x, this.start + this.axis - y * this.scale - 1], this.color)
-		graph.ctx.clearRect(0, this.start, graph.width, graph.fontSize)
-		graph.ctx.fillText(`${this.name}: ${y.toFixed(1)}`, 5, this.start + graph.fontSize - 1)
 	}
 }
 
