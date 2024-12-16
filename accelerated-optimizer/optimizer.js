@@ -183,7 +183,7 @@ class PidComputer {
 		const proportional = error
 		this.totalError += error
 		this.totalInterval += dt
-		const integral = this.totalError * dt
+		const integral = this.totalError
 		const derivative = (error - this.lastError) / dt
 		this.lastError = error
 		return proportional * this.weights[0] + integral * this.weights[1] + derivative * this.weights[2]
