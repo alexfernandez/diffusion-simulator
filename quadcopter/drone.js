@@ -169,7 +169,7 @@ class Drone {
 		if (this.brokenSeparation > maxSeparation) {
 			return true
 		}
-		return this.propulsion.isFinished(time)
+		return time > 30
 	}
 }
 
@@ -223,10 +223,6 @@ class Propulsion {
 		const a3 = zAccel / 4 + (-rollTorque - pitchTorque) / (4 * mass * radius) + yawTorque / (4 * yawFactor)
 		const a4 = zAccel / 4 + (-rollTorque + pitchTorque) / (4 * mass * radius) - yawTorque / (4 * yawFactor)
 		return [a1, a2, a3, a4]
-	}
-
-	isFinished(time) {
-		return time > 30
 	}
 }
 
