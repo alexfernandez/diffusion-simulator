@@ -268,7 +268,7 @@ class Parameters {
 	rollTarget = 0
 	windActive = false
 	motorImprecisionPercent = 0
-	pidWeightsSpeed = [0.5, 0, 0]
+	pidWeightsSpeed = [1, 0, 0]
 	pidWeightsAccel = [1, 0, 0]
 
 	getTargets() {
