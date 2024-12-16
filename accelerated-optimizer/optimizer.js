@@ -103,18 +103,8 @@ class Drone {
 
 	computeAccel(dt) {
 		const accel = this.computeAlgorithm(dt)
-		const limitedMax = this.limitMax(accel)
+		const limitedMax = limitMax(accel, maxAccel)
 		return limitedMax
-	}
-
-	limitMax(accel) {
-		if (accel > maxAccel) {
-			return maxAccel
-		}
-		if (accel < -maxAccel) {
-			return -maxAccel
-		}
-		return accel
 	}
 
 	computeAlgorithm(dt) {
@@ -245,5 +235,14 @@ class Screen {
 	}
 }
 
+function limitMax(value, maxValue) {
+	if (value > maxValue) {
+		return maxValue
+	}
+	if (value < -maxValue) {
+		return -maxValue
+	}
+	return value
+}
 
 
