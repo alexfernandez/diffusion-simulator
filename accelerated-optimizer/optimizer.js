@@ -26,6 +26,7 @@ window.onload = () => {
 	document.getElementById('p2value').oninput = resetSimulation
 	document.getElementById('i2value').oninput = resetSimulation
 	document.getElementById('d2value').oninput = resetSimulation
+	document.getElementById('delay').oninput = resetSimulation
 	console.log('running')
 	run()
 }
@@ -40,7 +41,8 @@ function run() {
 	const i2value = getParameter('i2value')
 	const d2value = getParameter('d2value')
 	drone.accelComputer.weights = [p2value, i2value, d2value]
-	console.log(`pids weights: ${drone.speedComputer.weights}, ${drone.accelComputer.weights}`)
+	drone.delay = getParameter('delay')
+	console.log(`pids weights: ${drone.speedComputer.weights}, ${drone.accelComputer.weights}, delay: ${drone.delay}`)
 	while (time * timeScale < screen.width) {
 		update(dt)
 		screen.draw()
@@ -86,17 +88,23 @@ function scale([x, y, z], factor) {
 }
 
 class Drone {
-	accel = 0
-	speed = 30
-	pos = 40
 	algorithm = 'none'
+	pos = 40
+	speed = 30
+	accel = 0
 	speedComputer = new PidComputer(0, [0, 0, 0])
 	accelComputer = new PidComputer(0, [0, 0, 0])
+	delay = 0
+	delayedPos = new DelayedValue(this.pos)
+	delayedSpeed = new DelayedValue(this.speed)
 
 	update(dt) {
 		const newAccel = this.computeAccel(dt)
 		const newSpeed = this.speed + dt * newAccel
 		const newPos = this.pos + dt * newSpeed
+		const total = 1 + this.delay / dt
+		this.delayedPos.add(newPos, total)
+		this.delayedSpeed.add(newPos, total)
 		this.pos = newPos
 		this.speed = newSpeed
 		this.accel = newAccel
@@ -117,13 +125,16 @@ class Drone {
 	}
 
 	computePid(dt) {
-		return this.speedComputer.computePid(this.pos, dt)
+		const pos = this.delayedPos.getLast()
+		return this.speedComputer.computePid(pos, dt)
 	}
 
 	computeDoublePid(dt) {
-		const targetSpeed = this.speedComputer.computePid(this.pos, dt)
+		const pos = this.delayedPos.getLast()
+		const speed = this.delayedPos.getLast()
+		const targetSpeed = this.speedComputer.computePid(pos, dt)
 		this.accelComputer.setPoint = targetSpeed
-		const targetAccel = this.accelComputer.computePid(this.speed, dt)
+		const targetAccel = this.accelComputer.computePid(speed, dt)
 		return targetAccel
 	}
 
@@ -152,6 +163,25 @@ class Drone {
 		const yp = x * sy*cp + y * (sy*sp*sr - cy*cr) + z * (sy*sp*cr - cy*sr)
 		const zp = - x * sp + y * (cp*sr) + z * (cp*cr)
 		return [xp, yp, zp]
+	}
+}
+
+class DelayedValue {
+	values = []
+
+	constructor(value) {
+		this.values.push(value)
+	}
+
+	add(value, total) {
+		this.values.push(value)
+		if (this.values.length > total) {
+			this.values.shift()
+		}
+	}
+
+	getLast() {
+		return this.values[0]
 	}
 }
 

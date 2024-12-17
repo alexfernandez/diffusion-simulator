@@ -64,6 +64,11 @@
 				<label for="d2value">d value</label>
 				<input type="number" name="d2show" min="0" max="4" value="0.1" disabled />
 			</fieldset>
+			<br>
+			<input type="range" id="delay" name="delay" min="0" max="4" value="0.1" step="0.1"
+				onchange="this.form.delayshow.value=this.value" />
+			<label for="delay">delay (seconds)</label>
+			<input type="number" name="delayshow" min="0" max="4" value="0.1" disabled />
 		</form>
 		</div>
 		<p>
