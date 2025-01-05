@@ -116,17 +116,24 @@ class Drone {
 	}
 
 	computeAlgorithm(dt) {
-		if (this.algorithm == 'pid') {
-			return this.computePid(dt)
+		if (this.algorithm == 'pos-pid') {
+			return this.computePosPid(dt)
+		} else if (this.algorithm == 'speed-pid') {
+			return this.computeSpeedPid(dt)
 		} else if (this.algorithm == 'double-pid') {
 			return this.computeDoublePid(dt)
 		}
 		return 0
 	}
 
-	computePid(dt) {
+	computePosPid(dt) {
 		const pos = this.delayedPos.getLast()
 		return this.speedComputer.computePid(pos, dt)
+	}
+
+	computeSpeedPid(dt) {
+		const speed = this.delayedSpeed.getLast()
+		return this.accelComputer.computePid(speed, dt) + 80
 	}
 
 	computeDoublePid(dt) {
