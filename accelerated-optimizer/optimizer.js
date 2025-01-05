@@ -4,7 +4,7 @@
 const dt = 0.1
 let time = 0
 const timeScale = 10
-const maxTotalError = 4000
+const maxIntegralError = 4000
 
 // drone characterization
 let drone
@@ -194,8 +194,7 @@ class DelayedValue {
 
 class PidComputer {
 	weights = [0, 0, 0]
-	totalError = 0
-	totalInterval = 0
+	integralError = 0
 	lastError = 0
 	setPoint = 0
 
@@ -207,9 +206,8 @@ class PidComputer {
 	computePid(processVariable, dt) {
 		const error = this.setPoint - processVariable
 		const proportional = error
-		this.totalError += error
-		this.totalInterval += dt
-		const integral = limitMax(this.totalError, maxTotalError)
+		this.integralError += error * dt
+		const integral = limitMax(this.integralError, maxIntegralError)
 		const derivative = (error - this.lastError) / dt
 		this.lastError = error
 		return proportional * this.weights[0] + integral * this.weights[1] + derivative * this.weights[2]
