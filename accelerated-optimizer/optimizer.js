@@ -104,7 +104,7 @@ class Drone {
 		const newPos = this.pos + dt * newSpeed
 		const total = 1 + this.delay / dt
 		this.delayedPos.add(newPos, total)
-		this.delayedSpeed.add(newPos, total)
+		this.delayedSpeed.add(newSpeed, total)
 		this.pos = newPos
 		this.speed = newSpeed
 		this.accel = newAccel
@@ -131,7 +131,7 @@ class Drone {
 
 	computeDoublePid(dt) {
 		const pos = this.delayedPos.getLast()
-		const speed = this.delayedPos.getLast()
+		const speed = this.delayedSpeed.getLast()
 		const targetSpeed = this.speedComputer.computePid(pos, dt)
 		this.accelComputer.setPoint = targetSpeed
 		const targetAccel = this.accelComputer.computePid(speed, dt)
