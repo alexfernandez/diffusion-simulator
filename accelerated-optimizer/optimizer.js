@@ -133,7 +133,7 @@ class Drone {
 
 	computeSpeedPid(dt) {
 		const speed = this.delayedSpeed.getLast()
-		return this.accelComputer.computePid(speed, dt) + 80
+		return this.accelComputer.computePid(speed, dt)
 	}
 
 	computeDoublePid(dt) {
