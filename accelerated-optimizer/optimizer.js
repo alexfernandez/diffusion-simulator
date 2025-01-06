@@ -95,8 +95,8 @@ class Drone {
 	speedComputer = new PidComputer(0, [0, 0, 0])
 	accelComputer = new PidComputer(0, [0, 0, 0])
 	delay = 0
-	delayedPos = new DelayedValue(this.pos)
-	delayedSpeed = new DelayedValue(this.speed)
+	delayedPos = new AccumulatedValue(this.pos)
+	delayedSpeed = new AccumulatedValue(this.speed)
 
 	update(dt) {
 		const newAccel = this.computeAccel(dt)
@@ -127,18 +127,18 @@ class Drone {
 	}
 
 	computePosPid(dt) {
-		const pos = this.delayedPos.getLast()
+		const pos = this.delayedPos.getDelayed()
 		return this.speedComputer.computePid(pos, dt)
 	}
 
 	computeSpeedPid(dt) {
-		const speed = this.delayedSpeed.getLast()
+		const speed = this.delayedSpeed.getDelayed()
 		return this.accelComputer.computePid(speed, dt)
 	}
 
 	computeDoublePid(dt) {
-		const pos = this.delayedPos.getLast()
-		const speed = this.delayedSpeed.getLast()
+		const pos = this.delayedPos.getDelayed()
+		const speed = this.delayedSpeed.getDelayed()
 		const targetSpeed = this.speedComputer.computePid(pos, dt)
 		this.accelComputer.setPoint = targetSpeed
 		const targetAccel = this.accelComputer.computePid(speed, dt)
@@ -173,7 +173,10 @@ class Drone {
 	}
 }
 
-class DelayedValue {
+/**
+ * Stores a number of values. Can be used for delayed values or integral values.
+ */
+class AccumulatedValue {
 	values = []
 
 	constructor(value) {
@@ -187,16 +190,23 @@ class DelayedValue {
 		}
 	}
 
-	getLast() {
+	getDelayed() {
 		return this.values[0]
 	}
+
+	getSum() {
+		return this.values.reduce((a, b) => a + b)
+	}
 }
+
+const totalIntegralValues = 10
 
 class PidComputer {
 	weights = [0, 0, 0]
 	integralError = 0
 	lastError = 0
 	setPoint = 0
+	integralError = new AccumulatedValue(0)
 
 	constructor(setPoint, weights) {
 		this.setPoint = setPoint
@@ -206,8 +216,9 @@ class PidComputer {
 	computePid(processVariable, dt) {
 		const error = this.setPoint - processVariable
 		const proportional = error
-		this.integralError += error * dt
-		const integral = limitMax(this.integralError, maxIntegralError)
+		const integrated = error * dt
+		this.integralError.add(integrated, totalIntegralValues)
+		const integral = limitMax(this.integralError.getSum(), maxIntegralError)
 		const derivative = (error - this.lastError) / dt
 		this.lastError = error
 		return proportional * this.weights[0] + integral * this.weights[1] + derivative * this.weights[2]
