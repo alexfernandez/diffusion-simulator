@@ -226,6 +226,7 @@ class PidComputer {
 }
 
 class Screen {
+	canvas = null
 	width = 0
 	height = 0
 	ctx = null
@@ -236,16 +237,17 @@ class Screen {
 	third = 0
 
 	constructor() {
-		const canvas = document.getElementById('canvas')
-		this.width = canvas.width
-		this.height = canvas.height
+		this.canvas = document.getElementById('canvas')
+		this.width = this.canvas.width
+		this.height = this.canvas.height
 		this.first = this.height / 3
 		this.second = 2 * this.height / 3
 		this.third = this.height
 		this.axis = this.height / 6
-		this.ctx = canvas.getContext('2d');
+		this.ctx = this.canvas.getContext('2d');
 		this.ctx.font = '16px sans-serif'
 		this.ctx.clearRect(0, 0, this.width, this.height)
+		this.canvas.addEventListener('mousemove', e => this.showCoords(e))
 	}
 
 	clear() {
@@ -277,6 +279,10 @@ class Screen {
 		this.ctx.moveTo(x1, y1)
 		this.ctx.lineTo(x2, y2)
 		this.ctx.stroke()
+	}
+
+	showCoords(e) {
+		this.canvas.title = `${e.offsetX / timeScale} s`
 	}
 }
 

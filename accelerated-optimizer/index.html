@@ -16,7 +16,7 @@
 	</head>
 	<body>
 		<h1>Accelerated optimizer simulator</h1>
-		<canvas id="canvas" width="800" height="480"></canvas>
+		<canvas id="canvas" width="800" height="480" title="canvas"></canvas>
 		<div id="form">
 		<form id="params">
 			<button id="run" type="button">run</button>
@@ -38,7 +38,7 @@
 				<label for="p1value">p value</label>
 				<input type="number" name="p1show" min="0" max="4" value="0.1" disabled />
 				<br>
-				<input type="range" id="i1value" name="i1value" min="0" max="4" value="0" step="0.01"
+				<input type="range" id="i1value" name="i1value" min="0" max="6" value="0" step="0.01"
 					onchange="this.form.i1show.value = this.value" />
 				<label for="i1value">i value</label>
 				<input type="number" name="i1show" min="0" max="4" value="0" disabled />
