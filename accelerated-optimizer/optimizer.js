@@ -203,7 +203,6 @@ const totalIntegralValues = 10
 
 class PidComputer {
 	weights = [0, 0, 0]
-	integralError = 0
 	lastError = 0
 	setPoint = 0
 	integralError = new AccumulatedValue(0)
