@@ -1,0 +1,39 @@
+{
+	"name": "physics-simulation",
+	"version": "0.1",
+	"type": "module",
+	"description": "A number of physics simulations, mostly for the browser",
+	"homepage": "https://github.com/alexfernandez/physics-simulation",
+	"contributors": [
+		"Alex Fernández <alexfernandeznpm@gmail.com>"
+	],
+	"license": "MIT",
+	"main": "index.js",
+	"types": "index.d.ts",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/alexfernandez/physics-simulation"
+	},
+	"dependencies": {
+	},
+	"devDependencies": {
+		"eslint": "^8.47.0"
+	},
+	"keywords": [
+		"browser",
+		"physics",
+		"simulation"
+	],
+	"engines": {
+		"node": ">=16"
+	},
+	"bin": {
+	},
+	"preferGlobal": true,
+	"scripts": {
+	},
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org/"
+	},
+	"private": true
+}

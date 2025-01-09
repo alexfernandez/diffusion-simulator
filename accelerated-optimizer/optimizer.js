@@ -8,12 +8,28 @@ const maxIntegralError = 4000
 // drone movement
 const maxAccel = 10
 
+// graph maxxes
+const maxPos = 1
+const maxSpeed = 0.1
+const maxTime = 80
+
 export function run(drone, screen) {
 	time = 0
 	while (time < screen.maxTime) {
 		update(drone, dt)
 		screen.draw(drone, time)
 	}
+}
+
+export function runUntilZero(drone) {
+	time = 0
+	while (Math.abs(drone.pos) > maxPos || Math.abs(drone.speed) > maxSpeed) {
+		update(drone, dt)
+		if (time > maxTime) {
+			return maxTime
+		}
+	}
+	return time
 }
 
 function update(drone, dt) {
