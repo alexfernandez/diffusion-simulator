@@ -1,5 +1,7 @@
 'use strict'
 
+import {run, Drone} from './optimizer.js'
+
 const timeScale = 10
 
 // screen

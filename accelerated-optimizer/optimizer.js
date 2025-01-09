@@ -8,7 +8,7 @@ const maxIntegralError = 4000
 // drone movement
 const maxAccel = 10
 
-function run(drone, screen) {
+export function run(drone, screen) {
 	time = 0
 	while (time < screen.maxTime) {
 		update(drone, dt)
@@ -36,7 +36,7 @@ function scale([x, y, z], factor) {
 	return [factor * x, factor * y, factor * z]
 }
 
-class Drone {
+export class Drone {
 	algorithm = 'none'
 	pos = 40
 	speed = 30
